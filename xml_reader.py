@@ -3,12 +3,14 @@ import xml.etree.ElementTree as ET
 
 # Get nodes and edges from tsk file
 # nodes: [id][attrib] = value
-# edges: [{index}][attrib] = value
+# edges_ftb: [source][dest] = value
+# edges_btf: [dest][source] = value
 def read_tsk(filename):
     tree = ET.parse(filename)
     root = tree.getroot()
     nodes = {}
-    edges = []
+    edges_ftb = {}
+    edges_btf = {}
     for graph_child in root[0]:
 
         # Get nodes
@@ -21,11 +23,18 @@ def read_tsk(filename):
         # Get edges
         elif graph_child.tag == 'TaskGraph':
             for edge in graph_child:
-                temp_edge = {}
-                for attrib in edge.attrib:
-                    temp_edge[attrib] = edge.attrib[attrib]
-                edges.append(temp_edge)
-    return {'nodes': nodes, 'edges': edges}
+                source = edge.attrib['Source']
+                dest = edge.attrib['Dest']
+
+                if source not in edges_ftb.keys():
+                    edges_ftb[source] = {}
+                if dest not in edges_btf.keys():
+                    edges_btf[dest] = {}
+
+                edges_ftb[source][dest] = edge.attrib['Cost']
+                edges_btf[dest][source] = edge.attrib['Cost']
+
+    return {'nodes': nodes, 'edges_ftb': edges_ftb, 'edges_btf': edges_btf}
 
 
 def read_cfg(filename):
@@ -53,11 +62,17 @@ def print_case(graph, cpus):
         for attrib in graph['nodes'][node_id]:
             print(F"\t{attrib}: {graph['nodes'][node_id][attrib]}")
 
-    # Print edges
-    print("Edges: Source -> Dest : Cost")
-    for edge in graph['edges']:
-        print(F"\t{edge['Source']} -> {edge['Dest']} : {edge['Cost']}")
+    # Print edges_ftb
+    print("Edges_ftb: Source -> Dest : Cost")
+    for source in graph['edges_ftb']:
+        for dest in graph['edges_ftb'][source]:
+            print(F"\t{source} -> {dest} : {graph['edges_ftb'][source][dest]}")
 
+    # Print edges_btf
+    print("Edges_btf: Dest -> Source : Cost")
+    for dest in graph['edges_btf']:
+        for source in graph['edges_btf'][dest]:
+            print(F"\t{dest} -> {source} : {graph['edges_btf'][dest][source]}")
     # Print cpus
     for cpu in cpus:
         print(F"CPU {cpu}")
