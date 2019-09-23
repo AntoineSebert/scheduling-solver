@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<graphml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Graph>
+    <Node Id="1" Name="A" WCET="2000" Period="20000" Deadline="20000" />
+    <Node Id="2" Name="B" WCET="4000" Period="20000" Deadline="20000" />
+    <Node Id="3" Name="C" WCET="4000" Period="20000" Deadline="20000" />
+    <Node Id="4" Name="D" WCET="5000" Period="20000" Deadline="20000" />
+    <Node Id="5" Name="E" WCET="4000" Period="20000" Deadline="20000" />
+    <Node Id="6" Name="F" WCET="3000" Period="20000" Deadline="20000" />
+    <Node Id="7" Name="G" WCET="2000" Period="20000" Deadline="20000" />
+    <Node Id="8" Name="H" WCET="5000" Period="20000" Deadline="20000" />
+    <Node Id="9" Name="I" WCET="4000" Period="20000" Deadline="20000" />
+	<Node Id="10" Name="J" WCET="3000" Period="20000" Deadline="20000" />
+    <Node Id="11" Name="K" WCET="2000" Period="20000" Deadline="20000" />
+	
+    <TaskGraph Name="Graph0">
+      <Edge Source="A" Dest="B" Cost="6000"/>
+	  <Edge Source="A" Dest="C" Cost="2000"/>
+	  <Edge Source="A" Dest="D" Cost="3000"/>
+	  <Edge Source="A" Dest="E" Cost="4000"/>
+	  <Edge Source="B" Dest="F" Cost="4000"/>
+	  <Edge Source="B" Dest="J" Cost="6000"/>
+	  <Edge Source="C" Dest="G" Cost="2000"/>
+	  <Edge Source="D" Dest="H" Cost="4000"/>
+	  <Edge Source="E" Dest="H" Cost="2000"/>
+	  <Edge Source="E" Dest="I" Cost="3000"/>
+	  <Edge Source="F" Dest="J" Cost="4000"/>
+	  <Edge Source="G" Dest="K" Cost="2000"/>
+	  <Edge Source="H" Dest="K" Cost="3000"/>
+	  <Edge Source="J" Dest="K" Cost="6000"/>
+    </TaskGraph>
+  </Graph>
+</graphml>
