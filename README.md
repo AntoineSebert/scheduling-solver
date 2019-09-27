@@ -3,8 +3,11 @@
 ## Authors
 
 Milán **Balázs**
+
 Nicolai **Herrmann**
+
 Jessika **Pecl**
+
 Antoine **Sébert**
 
 ## Prerequisites
@@ -89,7 +92,7 @@ Run the project with
 python src/main.py
 ```
 
-## Tests suit and other checks
+### Tests suit and other checks
 
 Security Checks:
 ```bash
@@ -101,9 +104,30 @@ Formatting and Syntax Errors:
 pylint src/main.py
 ```
 
-## Other
+### Other
 
 Dependency Graph:
 ```bash
 pipenv graph
 ```
+
+## File Hierarchy
+
+```
++ root/
+  + data/
+  | + case1.cfg
+  | + case1.tsk
+  + src/
+  | + main.py
+  + .gitattributes
+  + .gitlab-ci.yml
+  + .gitignore
+  + Pipfile
+  + Pipfile.lock
+  + README.md
+```
+
+## Roadmap
+
+- [ ] 24/09/2019 - 01/10/2019 | @all | Investigate possible solutions
