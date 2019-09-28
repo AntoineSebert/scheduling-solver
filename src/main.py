@@ -8,3 +8,7 @@ def main():
 
 if __name__ == "__main__":
 	main()
+
+# Tests
+def test_main():
+	return 0
