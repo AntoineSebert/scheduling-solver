@@ -33,8 +33,6 @@ test:
 run:
   script:
     - python src/main.py bdist_wheel
-    # an alternative approach is to install and run:
-    - pip install dist/*
     # run the command here
   artifacts:
     paths:
