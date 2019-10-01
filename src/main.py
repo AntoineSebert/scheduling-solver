@@ -16,6 +16,18 @@ Analysis
 - https://gitlab.com/pycqa/flake8
 """
 
+from collections import namedtuple
+
+# DATA STRUCTURES #####################################################################################################
+
+File_pair = namedtuple('File_pair', ['tsk', 'cfg'])
+Node = namedtuple("Node", ["id", "name", "wcet", "period", "deadline"])
+Edge = namedtuple("Edge", ["source", "dest", "cost"])
+"""
+Processor = []
+Architecture = [Processor]
+"""
+
 def main():
 	"""Script entry point"""
 	print("Hello, World!")
