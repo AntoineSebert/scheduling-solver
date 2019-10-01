@@ -16,9 +16,12 @@ Analysis
 - https://gitlab.com/pycqa/flake8
 """
 
+# IMPORTS #############################################################################################################
+
 import argparse
 from typing import *
 from collections import namedtuple
+from fractions import Fraction
 
 # DATA STRUCTURES #####################################################################################################
 
@@ -54,6 +57,23 @@ def get_input_files() -> File_pair:
 	args = parser.parse_args()
 
 	return File_pair(tsk=args.task, cfg=args.conf)
+
+def utilization(processes: List[Node]) -> float:
+	"""Determine the utilization load carried by a list of tasks."""
+
+	return sum([Fraction(int(n.wcet), int(n.period)) for n in processes])
+
+def sufficient_condition(count: int) -> float:
+	"""Determine the sufficient condition for schedulability of a processor or core."""
+
+	return count * (pow(2, 1 / count) - 1)
+
+def is_schedulable(processes: List[Node]) -> bool:
+	"""Returns 'True' if a set of periodic tasks are schedulable, and 'False' otherise."""
+
+	return processor_use(processes) <= sufficient_condition(len(processes))
+
+# ENTRY POINT #########################################################################################################
 
 def main():
 	"""Script entry point"""
