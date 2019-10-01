@@ -20,6 +20,9 @@ Analysis
 
 import argparse
 from typing import *
+from networkx.readwrite.graphml import read_graphml
+from networkx.algorithms.cycles import simple_cycles
+from networkx import DiGraph, HasACycle
 from collections import namedtuple
 from fractions import Fraction
 
@@ -83,6 +86,29 @@ def main():
 	print("Files imported: ")
 	print("\t" + file_pair.tsk.name)
 	print("\t" + file_pair.cfg.name)
+
+	# create graph
+	G = DiGraph(read_graphml(file_pair.tsk.name))
+	#G = read_graphml(file_pair.cfg.name)
+
+	# test for cycles
+	if list(simple_cycles(G)) != []:
+		raise HasACycle("The provided directed graph must be acyclic.")
+
+	# color graph
+	# https://networkx.github.io/documentation/stable/reference/algorithms/coloring.html
+
+	# solve it
+	#...
+
+	# validate it
+	# for each cpu for each core if is_schedulable() == False: raise NotSchedulable
+
+	# draw it
+	# https://networkx.github.io/documentation/stable/reference/drawing.html#module-networkx.drawing.nx_pylab
+
+	#simulate
+	#...
 
 if __name__ == "__main__":
 	main()
