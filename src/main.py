@@ -16,6 +16,8 @@ Analysis
 - https://gitlab.com/pycqa/flake8
 """
 
+import argparse
+from typing import *
 from collections import namedtuple
 
 # DATA STRUCTURES #####################################################################################################
@@ -28,9 +30,39 @@ Processor = []
 Architecture = [Processor]
 """
 
+# FUNCTIONS ###########################################################################################################
+
+def get_input_files() -> File_pair:
+	"""Get the filepath for the .tsk and .cfg files from the command line."""
+
+	parser = argparse.ArgumentParser(prog='SOLVER', description = 'Solve scheduling problems.', allow_abbrev=True)
+	parser.add_argument(
+		"--task",
+		nargs = '?',
+		type = argparse.FileType('r', encoding="utf-8"),
+		default = "data/case_1.tsk",
+		help = "Import problem description from TASK file"
+	)
+	parser.add_argument(
+		"--conf",
+		nargs = '?',
+		type = argparse.FileType('r', encoding="utf-8"),
+		default = "data/case_1.cfg",
+		help = "Import system configuration from CONFIGURATION file"
+	)
+	parser.add_argument('--version', action='version', version='%(prog)s 0.0.1')
+	args = parser.parse_args()
+
+	return File_pair(tsk=args.task, cfg=args.conf)
+
 def main():
 	"""Script entry point"""
-	print("Hello, World!")
+
+	# import files
+	file_pair = get_input_files()
+	print("Files imported: ")
+	print("\t" + file_pair.tsk.name)
+	print("\t" + file_pair.cfg.name)
 
 if __name__ == "__main__":
 	main()
