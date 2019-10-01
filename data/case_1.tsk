@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.1/graphml.xsd">
+	<graph>
+		<Node Id="1" Name="A" WCET="2000" Period="20000" Deadline="20000"/>
+		<Node Id="2" Name="B" WCET="4000" Period="20000" Deadline="20000"/>
+		<Node Id="3" Name="C" WCET="4000" Period="20000" Deadline="20000"/>
+		<Node Id="4" Name="D" WCET="5000" Period="20000" Deadline="20000"/>
+		<Node Id="5" Name="E" WCET="4000" Period="20000" Deadline="20000"/>
+		<Node Id="6" Name="F" WCET="3000" Period="20000" Deadline="20000"/>
+		<Node Id="7" Name="G" WCET="2000" Period="20000" Deadline="20000"/>
+		<Node Id="8" Name="H" WCET="5000" Period="20000" Deadline="20000"/>
+		<Node Id="9" Name="I" WCET="4000" Period="20000" Deadline="20000"/>
+		<Node Id="10" Name="J" WCET="3000" Period="20000" Deadline="20000"/>
+		<Node Id="11" Name="K" WCET="2000" Period="20000" Deadline="20000"/>
+		<Edge Source="A" Target="B" Cost="6000"/>
+		<Edge Source="A" Target="C" Cost="2000"/>
+		<Edge Source="A" Target="D" Cost="3000"/>
+		<Edge Source="A" Target="E" Cost="4000"/>
+		<Edge Source="B" Target="F" Cost="4000"/>
+		<Edge Source="B" Target="J" Cost="6000"/>
+		<Edge Source="C" Target="G" Cost="2000"/>
+		<Edge Source="D" Target="H" Cost="4000"/>
+		<Edge Source="E" Target="H" Cost="2000"/>
+		<Edge Source="E" Target="I" Cost="3000"/>
+		<Edge Source="F" Target="J" Cost="4000"/>
+		<Edge Source="G" Target="K" Cost="2000"/>
+		<Edge Source="H" Target="K" Cost="3000"/>
+		<Edge Source="J" Target="K" Cost="6000"/>
+	</graph>
+</graphml>
