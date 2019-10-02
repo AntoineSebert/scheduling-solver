@@ -20,7 +20,7 @@ cache:
 
 before_script:
   - python -V  # Print out python version for debugging
-  - pip install virtualenv
+  - pip install virtualenv networkx matplotlib
   - virtualenv venv
   - source venv/bin/activate
 
