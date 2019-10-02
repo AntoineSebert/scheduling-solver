@@ -2,31 +2,118 @@
 <graphml xmlns="http://graphml.graphdrawing.org/xmlns"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.1/graphml.xsd">
-	<graph>
-		<Node Id="1" Name="A" WCET="2000" Period="20000" Deadline="20000"/>
-		<Node Id="2" Name="B" WCET="4000" Period="20000" Deadline="20000"/>
-		<Node Id="3" Name="C" WCET="4000" Period="20000" Deadline="20000"/>
-		<Node Id="4" Name="D" WCET="5000" Period="20000" Deadline="20000"/>
-		<Node Id="5" Name="E" WCET="4000" Period="20000" Deadline="20000"/>
-		<Node Id="6" Name="F" WCET="3000" Period="20000" Deadline="20000"/>
-		<Node Id="7" Name="G" WCET="2000" Period="20000" Deadline="20000"/>
-		<Node Id="8" Name="H" WCET="5000" Period="20000" Deadline="20000"/>
-		<Node Id="9" Name="I" WCET="4000" Period="20000" Deadline="20000"/>
-		<Node Id="10" Name="J" WCET="3000" Period="20000" Deadline="20000"/>
-		<Node Id="11" Name="K" WCET="2000" Period="20000" Deadline="20000"/>
-		<Edge Source="A" Target="B" Cost="6000"/>
-		<Edge Source="A" Target="C" Cost="2000"/>
-		<Edge Source="A" Target="D" Cost="3000"/>
-		<Edge Source="A" Target="E" Cost="4000"/>
-		<Edge Source="B" Target="F" Cost="4000"/>
-		<Edge Source="B" Target="J" Cost="6000"/>
-		<Edge Source="C" Target="G" Cost="2000"/>
-		<Edge Source="D" Target="H" Cost="4000"/>
-		<Edge Source="E" Target="H" Cost="2000"/>
-		<Edge Source="E" Target="I" Cost="3000"/>
-		<Edge Source="F" Target="J" Cost="4000"/>
-		<Edge Source="G" Target="K" Cost="2000"/>
-		<Edge Source="H" Target="K" Cost="3000"/>
-		<Edge Source="J" Target="K" Cost="6000"/>
+
+	<key id="d0" for="edge" attr.name="weight" attr.type="int">
+		<default>0</default>
+	</key>
+	<key id="d1" for="node" attr.name="wcet" attr.type="int">
+		<default>0</default>
+	</key>
+	<key id="d2" for="node" attr.name="period" attr.type="int">
+		<default>0</default>
+	</key>
+	<key id="d3" for="node" attr.name="deadline" attr.type="int">
+		<default>0</default>
+	</key>
+
+	<graph edgedefault="directed">
+		<node id="A">
+			<data key="d1">2000</data>
+			<data key="d2">20000</data>
+			<data key="d3">20000</data>
+		</node>
+		<node id="B">
+			<data key="d1">4000</data>
+			<data key="d2">20000</data>
+			<data key="d3">20000</data>
+		</node>
+		<node id="C">
+			<data key="d1">4000</data>
+			<data key="d2">20000</data>
+			<data key="d3">20000</data>
+		</node>
+		<node id="D">
+			<data key="d1">5000</data>
+			<data key="d2">20000</data>
+			<data key="d3">20000</data>
+		</node>
+		<node id="E">
+			<data key="d1">4000</data>
+			<data key="d2">20000</data>
+			<data key="d3">20000</data>
+		</node>
+		<node id="F">
+			<data key="d1">3000</data>
+			<data key="d2">20000</data>
+			<data key="d3">20000</data>
+		</node>
+		<node id="G">
+			<data key="d1">2000</data>
+			<data key="d2">20000</data>
+			<data key="d3">20000</data>
+		</node>
+		<node id="H">
+			<data key="d1">5000</data>
+			<data key="d2">20000</data>
+			<data key="d3">20000</data>
+		</node>
+		<node id="I">
+			<data key="d1">4000</data>
+			<data key="d2">20000</data>
+			<data key="d3">20000</data>
+		</node>
+		<node id="J">
+			<data key="d1">3000</data>
+			<data key="d2">20000</data>
+			<data key="d3">20000</data>
+		</node>
+		<node id="K">
+			<data key="d1">2000</data>
+			<data key="d2">20000</data>
+			<data key="d3">20000</data>
+		</node>
+
+		<edge source="A" target="B">
+			<data key="d0">6000</data>
+		</edge>
+		<edge source="A" target="C">
+			<data key="d0">2000</data>
+		</edge>
+		<edge source="A" target="D">
+			<data key="d0">3000</data>
+		</edge>
+		<edge source="A" target="E">
+			<data key="d0">4000</data>
+		</edge>
+		<edge source="B" target="F">
+			<data key="d0">4000</data>
+		</edge>
+		<edge source="B" target="J">
+			<data key="d0">6000</data>
+		</edge>
+		<edge source="C" target="G">
+			<data key="d0">2000</data>
+		</edge>
+		<edge source="D" target="H">
+			<data key="d0">4000</data>
+		</edge>
+		<edge source="E" target="H">
+			<data key="d0">2000</data>
+		</edge>
+		<edge source="E" target="I">
+			<data key="d0">3000</data>
+		</edge>
+		<edge source="F" target="J">
+			<data key="d0">4000</data>
+		</edge>
+		<edge source="G" target="K">
+			<data key="d0">2000</data>
+		</edge>
+		<edge source="H" target="K">
+			<data key="d0">3000</data>
+		</edge>
+		<edge source="J" target="K">
+			<data key="d0">6000</data>
+		</edge>
 	</graph>
 </graphml>
