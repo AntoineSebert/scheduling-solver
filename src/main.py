@@ -9,6 +9,14 @@ Resources
 
 Data structure : acyclic directed weighted graph
 
+Graph operations
+- https://github.com/faif/python-patterns/blob/master/patterns/other/graph_search.py
+
+Design patterns
+- https://github.com/faif/python-patterns/blob/master/patterns/behavioral/strategy.py
+- https://github.com/faif/python-patterns/blob/master/patterns/behavioral/chain_of_responsibility__py3.py
+- https://github.com/faif/python-patterns/blob/master/patterns/behavioral/chaining_method.py
+
 Analysis
 - https://github.com/nedbat/coveragepy
 - https://github.com/facebook/pyre-check
