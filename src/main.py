@@ -28,21 +28,24 @@ Analysis
 
 import argparse
 from typing import *
-from networkx.readwrite.graphml import read_graphml
-from networkx.algorithms.cycles import simple_cycles
-from networkx import DiGraph, HasACycle
 from collections import namedtuple
 from fractions import Fraction
+from io import TextIOWrapper
+import xml.etree.cElementTree as et
+
+import matplotlib.pyplot as plt
+import networkx as nx
+from networkx import DiGraph, HasACycle, NetworkXPointlessConcept, NetworkXNoCycle
+from networkx.algorithms.cycles import find_cycle
+from networkx.classes.function import is_empty
+from networkx.readwrite.graphml import read_graphml
 
 # DATA STRUCTURES #####################################################################################################
 
 File_pair = namedtuple('File_pair', ['tsk', 'cfg'])
 Node = namedtuple("Node", ["id", "name", "wcet", "period", "deadline"])
 Edge = namedtuple("Edge", ["source", "dest", "cost"])
-"""
-Processor = []
-Architecture = [Processor]
-"""
+Architecture = List[int]
 
 # FUNCTIONS ###########################################################################################################
 
@@ -68,6 +71,26 @@ def get_input_files() -> File_pair:
 	args = parser.parse_args()
 
 	return File_pair(tsk=args.task, cfg=args.conf)
+
+def get_arch(filepath: TextIOWrapper) -> Architecture:
+	"""Create the processor architecture from the configuration."""
+
+	return [len(el.getchildren()) for el in et.fromstring(filepath.read(-1)).findall('cpu')]
+
+def validate(graph: DiGraph):
+	"""Validate the graph given as parameter. Especially checks if it is empty or contains cycles."""
+
+	# test for null graph
+	if is_empty(graph):
+		raise NetworkXPointlessConcept("The provided graph cannot be empty.")
+
+	# test for cycles
+	try:
+		find_cycle(graph)
+	except NetworkXNoCycle as e:
+		pass
+	else:
+		raise HasACycle("The provided directed graph must be acyclic.")
 
 def utilization(processes: List[Node]) -> float:
 	"""Determine the utilization load carried by a list of tasks."""
@@ -96,12 +119,19 @@ def main():
 	print("\t" + file_pair.cfg.name)
 
 	# create graph
-	G = DiGraph(read_graphml(file_pair.tsk.name))
-	#G = read_graphml(file_pair.cfg.name)
+	G = read_graphml(file_pair.tsk.name) # add custom named tuples
+	validate(G)
 
-	# test for cycles
-	if list(simple_cycles(G)) != []:
-		raise HasACycle("The provided directed graph must be acyclic.")
+	# display
+	pos = nx.layout.spring_layout(G)
+	nx.draw_networkx(G, pos)
+	#plt.show()
+
+	# get machine architecture
+	arch = get_arch(file_pair.cfg)
+
+	# display
+	print(arch)
 
 	# color graph
 	# https://networkx.github.io/documentation/stable/reference/algorithms/coloring.html
