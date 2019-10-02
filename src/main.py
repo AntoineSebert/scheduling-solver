@@ -17,6 +17,8 @@ Design patterns
 - https://github.com/faif/python-patterns/blob/master/patterns/behavioral/chain_of_responsibility__py3.py
 - https://github.com/faif/python-patterns/blob/master/patterns/behavioral/chaining_method.py
 
+Documentation : https://numpydoc.readthedocs.io/en/latest/format.html
+
 Analysis
 - https://github.com/nedbat/coveragepy
 - https://github.com/facebook/pyre-check
@@ -27,32 +29,33 @@ Analysis
 # IMPORTS #############################################################################################################
 
 import argparse
-from typing import *
-from collections import namedtuple
-from fractions import Fraction
 from io import TextIOWrapper
+import matplotlib.pyplot as plt
 import xml.etree.cElementTree as et
 
-import matplotlib.pyplot as plt
 import networkx as nx
 from networkx import DiGraph, HasACycle, NetworkXPointlessConcept, NetworkXNoCycle
 from networkx.algorithms.cycles import find_cycle
+from networkx.algorithms.coloring import *
 from networkx.classes.function import is_empty
 from networkx.readwrite.graphml import read_graphml
 
-# DATA STRUCTURES #####################################################################################################
-
-File_pair = namedtuple('File_pair', ['tsk', 'cfg'])
-Node = namedtuple("Node", ["id", "name", "wcet", "period", "deadline"])
-Edge = namedtuple("Edge", ["source", "dest", "cost"])
-Architecture = List[int]
+from rate_monotonic import *
+from type_alias import *
+from exception import *
 
 # FUNCTIONS ###########################################################################################################
 
 def get_input_files() -> File_pair:
-	"""Get the filepath for the .tsk and .cfg files from the command line."""
+	"""Get the filepath for the *.tsk* and *.cfg* files from the CLI.
 
-	parser = argparse.ArgumentParser(prog='SOLVER', description = 'Solve scheduling problems.', allow_abbrev=True)
+	Returns
+	-------
+	File_pair
+		The pair of files to import as `TextIOWrapper`.
+	"""
+
+	parser = argparse.ArgumentParser(prog='SOLVER', description='Solve scheduling problems.', allow_abbrev=True)
 	parser.add_argument(
 		"--task",
 		nargs = '?',
@@ -73,39 +76,46 @@ def get_input_files() -> File_pair:
 	return File_pair(tsk=args.task, cfg=args.conf)
 
 def get_arch(filepath: TextIOWrapper) -> Architecture:
-	"""Create the processor architecture from the configuration."""
+	"""Create the processor architecture from the configuration.
+
+	Parameters
+	----------
+	filepath : TextIOWrapper
+		The filepath to the *.cfg* file describing the processor architecture.
+
+	Returns
+	-------
+	Architecture
+		A list of integers, each entry being a cpu, and each integer being the number of cores.
+	"""
 
 	return [len(el.getchildren()) for el in et.fromstring(filepath.read(-1)).findall('cpu')]
 
 def validate(graph: DiGraph):
-	"""Validate the graph given as parameter. Especially checks if it is empty or contains cycles."""
+	"""Validate the graph given as parameter. Especially checks if it is empty or contains cycles.
 
-	# test for null graph
+	Parameters
+	----------
+	graph : DiGraph
+		The directed oriented graph imported from the *.tsk* file.
+
+	Raises
+	------
+	NetworkXPointlessConcept
+		If the graph is null.
+	HasACycle
+		If the graph contains at least a cycle.
+	"""
+
 	if is_empty(graph):
 		raise NetworkXPointlessConcept("The provided graph cannot be empty.")
 
-	# test for cycles
 	try:
 		find_cycle(graph)
 	except NetworkXNoCycle as e:
 		pass
 	else:
 		raise HasACycle("The provided directed graph must be acyclic.")
-
-def utilization(processes: List[Node]) -> float:
-	"""Determine the utilization load carried by a list of tasks."""
-
-	return sum([Fraction(int(n.wcet), int(n.period)) for n in processes])
-
-def sufficient_condition(count: int) -> float:
-	"""Determine the sufficient condition for schedulability of a processor or core."""
-
-	return count * (pow(2, 1 / count) - 1)
-
-def is_schedulable(processes: List[Node]) -> bool:
-	"""Returns 'True' if a set of periodic tasks are schedulable, and 'False' otherise."""
-
-	return processor_use(processes) <= sufficient_condition(len(processes))
 
 # ENTRY POINT #########################################################################################################
 
@@ -130,11 +140,21 @@ def main():
 	# get machine architecture
 	arch = get_arch(file_pair.cfg)
 
+	# test if architecture is valid
+	if len(arch) == 0:
+		raise NoProcessor("The configuration must include at least one processor.")
+
 	# display
-	print(arch)
+	print("Number of cores and processors: ")
+	print(*arch, sep='\n')
 
 	# color graph
-	# https://networkx.github.io/documentation/stable/reference/algorithms/coloring.html
+	if G.degree <= sum(arch):
+		equitable_color(G, sum(arch))
+	else:
+		greedy_color(G, strategy_connected_sequential(G, sum(arch)))
+
+	# display
 
 	# solve it
 	#...
@@ -145,8 +165,11 @@ def main():
 	# draw it
 	# https://networkx.github.io/documentation/stable/reference/drawing.html#module-networkx.drawing.nx_pylab
 
-	#simulate
+	# simulate
+	# https://github.com/dbader/schedule
 	#...
+
+	print("Finished")
 
 if __name__ == "__main__":
 	main()
