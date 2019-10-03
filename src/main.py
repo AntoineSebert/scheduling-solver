@@ -152,12 +152,22 @@ def main():
 	print(*arch, sep='\n')
 
 	# color graph
-	if G.degree <= sum(arch):
+	"""Dictionary holding strategy names as keys and support for interchange as a boolean value."""
+	strategies = {
+		'largest_first': True,
+		'random_sequential': True,
+		'smallest_last': True,
+		'independent_set': False,
+		'DSATUR': False
+	}
+	if max([G.degree(node) for node in G.nodes]) <= sum(arch):
 		equitable_color(G, sum(arch))
 	else:
-		greedy_color(G, strategy_connected_sequential(G, sum(arch)))
+		greedy_color(G, 'saturation_largest_first')
 
 	# display
+	nx.draw_planar(G)
+	plt.show()
 
 	# solve it
 	#...
