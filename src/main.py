@@ -88,7 +88,7 @@ def get_arch(filepath: TextIOWrapper) -> List[int]:
 		A list of integers, each entry being a cpu, and each integer being the number of cores.
 	"""
 
-	return [len(el.getchildren()) for el in et.fromstring(filepath.read(-1)).findall('cpu')]
+	return [len(list(el)) for el in et.fromstring(filepath.read(-1)).findall('cpu')]
 
 def validate(graph: DiGraph):
 	"""Validate the graph given as parameter. Especially checks if it is empty or contains cycles.
