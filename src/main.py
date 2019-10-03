@@ -41,12 +41,11 @@ from networkx.classes.function import is_empty
 from networkx.readwrite.graphml import read_graphml
 
 from rate_monotonic import *
-from type_alias import *
 from exception import *
 
 # FUNCTIONS ###########################################################################################################
 
-def get_input_files() -> File_pair:
+def get_input_files() -> (TextIOWrapper, TextIOWrapper):
 	"""Get the filepath for the *.tsk* and *.cfg* files from the CLI.
 
 	Returns
@@ -73,9 +72,9 @@ def get_input_files() -> File_pair:
 	parser.add_argument('--version', action='version', version='%(prog)s 0.0.1')
 	args = parser.parse_args()
 
-	return File_pair(tsk=args.task, cfg=args.conf)
+	return (args.task, args.conf)
 
-def get_arch(filepath: TextIOWrapper) -> Architecture:
+def get_arch(filepath: TextIOWrapper) -> List[int]:
 	"""Create the processor architecture from the configuration.
 
 	Parameters
@@ -125,11 +124,11 @@ def main():
 	# import files
 	file_pair = get_input_files()
 	print("Files imported: ")
-	print("\t" + file_pair.tsk.name)
-	print("\t" + file_pair.cfg.name)
+	print("\t" + file_pair[0].name)
+	print("\t" + file_pair[1].name)
 
 	# create graph
-	G = read_graphml(file_pair.tsk.name) # add custom named tuples
+	G = read_graphml(file_pair[0].name) # add custom named tuples
 	validate(G)
 
 	# display
@@ -138,7 +137,7 @@ def main():
 	#plt.show()
 
 	# get machine architecture
-	arch = get_arch(file_pair.cfg)
+	arch = get_arch(file_pair[1])
 
 	# test if architecture is valid
 	if len(arch) == 0:

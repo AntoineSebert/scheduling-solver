@@ -2,14 +2,14 @@
 
 from fractions import Fraction
 from typing import *
-from type_alias import Node
+from networkx import nodes
 
-def utilization(processes: List[Node]) -> float:
+def utilization(processes: List[nodes]) -> float:
 	"""Determine the utilization load carried by a list of tasks.
 
 	Parameters
 	----------
-	processes : List[Node]
+	processes : List[nodes]
 		A list of processes.
 
 	Returns
@@ -44,12 +44,12 @@ def sufficient_condition(count: int) -> float:
 
 	return count * (pow(2, 1 / count) - 1)
 
-def is_schedulable(processes: List[Node]) -> bool:
+def is_schedulable(processes: List[nodes]) -> bool:
 	"""Determines whether a list of processes is schedulable or not.
 
 	Parameters
 	----------
-	processes : List[Node]
+	processes : List[nodes]
 		A set of periodic tasks.
 
 	Returns
