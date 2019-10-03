@@ -42,6 +42,7 @@ from networkx.readwrite.graphml import read_graphml
 
 from rate_monotonic import *
 from exception import *
+from draw import *
 
 # FUNCTIONS ###########################################################################################################
 
@@ -132,9 +133,12 @@ def main():
 	validate(G)
 
 	# display
+	draw_console(G)
+	"""
 	pos = nx.layout.spring_layout(G)
 	nx.draw_networkx(G, pos)
-	#plt.show()
+	plt.show()
+	"""
 
 	# get machine architecture
 	arch = get_arch(file_pair[1])
@@ -166,7 +170,6 @@ def main():
 
 	# simulate
 	# https://github.com/dbader/schedule
-	#...
 
 	print("Finished")
 
