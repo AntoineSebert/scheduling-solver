@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 class NoProcessor(Exception):
-	"""Exception raised for errors in the input.
+	"""Exception raised when no processor is found in the configuration file.
 
 	Attributes
 	----------

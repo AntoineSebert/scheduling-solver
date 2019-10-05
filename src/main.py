@@ -6,24 +6,29 @@
 Resources
 - https://algorithm-visualizer.org/greedy/job-scheduling-problem
 - https://visualgo.net/en/graphds
+- https://docs.microsoft.com/en-us/visualstudio/python/working-with-c-cpp-python-in-visual-studio?view=vs-2019
+- https://numpydoc.readthedocs.io/en/latest/format.html
 
 Data structure : acyclic directed weighted graph
-
-Graph operations
-- https://github.com/faif/python-patterns/blob/master/patterns/other/graph_search.py
 
 Design patterns
 - https://github.com/faif/python-patterns/blob/master/patterns/behavioral/strategy.py
 - https://github.com/faif/python-patterns/blob/master/patterns/behavioral/chain_of_responsibility__py3.py
 - https://github.com/faif/python-patterns/blob/master/patterns/behavioral/chaining_method.py
 
-Documentation : https://numpydoc.readthedocs.io/en/latest/format.html
-
 Analysis
 - https://github.com/nedbat/coveragepy
 - https://github.com/facebook/pyre-check
 - https://github.com/python/mypy
 - https://gitlab.com/pycqa/flake8
+"""
+
+"""
+time benchmark
+logging : https://docs.python.org/3/library/logging.html
+progressbar
+benchmark strats
+random problem generation : https://networkx.github.io/documentation/stable/reference/randomness.html
 """
 
 # IMPORTS #############################################################################################################
@@ -166,14 +171,18 @@ def main():
 		greedy_color(G, 'saturation_largest_first')
 
 	# display
+	"""
 	nx.draw_planar(G)
 	plt.show()
+	"""
 
 	# solve it
-	#...
+	print("Solving the scheduling problem...")
+	# ...
 
 	# validate it
 	# for each cpu for each core if is_schedulable() == False: raise NotSchedulable
+	# check if https://networkx.github.io/documentation/stable/reference/algorithms/generated/networkx.algorithms.dag.dag_longest_path.html shorter than deadline
 
 	# draw it
 	# https://networkx.github.io/documentation/stable/reference/drawing.html#module-networkx.drawing.nx_pylab
