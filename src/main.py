@@ -128,13 +128,16 @@ def main():
 	"""Script entry point"""
 
 	# import files
+	print("Importing files...")
 	file_pair = get_input_files()
 	print("Files imported: ")
 	print("\t" + file_pair[0].name)
 	print("\t" + file_pair[1].name)
 
 	# create graph
+	print("Generating graph from  the '.tsk' file...")
 	G = read_graphml(file_pair[0].name) # add custom named tuples
+	print("Validating the graph...")
 	validate(G)
 
 	# display
@@ -146,6 +149,7 @@ def main():
 	"""
 
 	# get machine architecture
+	print("Generating architecture from the '.cfg' file...")
 	arch = get_arch(file_pair[1])
 
 	# test if architecture is valid
@@ -157,7 +161,7 @@ def main():
 	print(*arch, sep='\n')
 
 	# color graph
-	"""Dictionary holding strategy names as keys and support for interchange as a boolean value."""
+	print("Coloring graph...")
 	strategies = {
 		'largest_first': True,
 		'random_sequential': True,
@@ -181,6 +185,7 @@ def main():
 	# ...
 
 	# validate it
+	print("Validating the solution...")
 	# for each cpu for each core if is_schedulable() == False: raise NotSchedulable
 	# check if https://networkx.github.io/documentation/stable/reference/algorithms/generated/networkx.algorithms.dag.dag_longest_path.html shorter than deadline
 
