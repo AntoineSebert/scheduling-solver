@@ -1,6 +1,26 @@
 # -*- coding: utf-8 -*-
 
-"""This module aims to solve task scheduling problems."""
+"""This module aims to solve task scheduling problems.
+
+Usage:
+	main.py
+	main.py --task <TASK> --conf <CONF>
+	main.py --verbose
+	main.py --task <TASK> --conf <CONF> --verbose
+	main.py --benchmark
+	main.py --task <TASK> --conf <CONF> --benchmark
+	main.py (-h | --help)
+	main.py --version
+
+Options:
+	-h --help		Show this screen.
+	--version		Show version.
+	--verbose		Toggle verbose output.
+	--benchmark		Benchmark the greedy coloration strategies.
+	--task <TASK>	The graph data in GraphML format [default: "data/case_1.tsk"].
+	--conf <CONF>	The architecture data in XML [default: "data/case_1.cfg"].
+
+"""
 
 """
 Resources
@@ -21,11 +41,11 @@ Analysis
 - https://github.com/facebook/pyre-check
 - https://github.com/python/mypy
 - https://gitlab.com/pycqa/flake8
+- https://github.com/cyrus-and/gdb-dashboard
 """
 
 """
-time benchmark
-logging : https://docs.python.org/3/library/logging.html
+logging : https://docs.python.org/3/library/logging.html + verbose output + time benchmark
 progressbar
 benchmark strats
 random problem generation : https://networkx.github.io/documentation/stable/reference/randomness.html
@@ -51,6 +71,8 @@ from draw import *
 
 # FUNCTIONS ###########################################################################################################
 
+# I/O functions
+
 def get_input_files() -> (TextIOWrapper, TextIOWrapper):
 	"""Get the filepath for the *.tsk* and *.cfg* files from the CLI.
 
@@ -60,17 +82,15 @@ def get_input_files() -> (TextIOWrapper, TextIOWrapper):
 		The pair of files to import as `TextIOWrapper`.
 	"""
 
-	parser = argparse.ArgumentParser(prog='SOLVER', description='Solve scheduling problems.', allow_abbrev=True)
+	parser = argparse.ArgumentParser(prog='SOLVER', description='Solve scheduling problems using graph coloration.', allow_abbrev=True)
 	parser.add_argument(
 		"--task",
-		nargs = '?',
 		type = argparse.FileType('r', encoding="utf-8"),
 		default = "data/case_1.tsk",
 		help = "Import problem description from TASK file"
 	)
 	parser.add_argument(
 		"--conf",
-		nargs = '?',
 		type = argparse.FileType('r', encoding="utf-8"),
 		default = "data/case_1.cfg",
 		help = "Import system configuration from CONFIGURATION file"
@@ -95,6 +115,8 @@ def get_arch(filepath: TextIOWrapper) -> List[int]:
 	"""
 
 	return [len(list(el)) for el in et.fromstring(filepath.read(-1)).findall('cpu')]
+
+# Graph functions
 
 def validate(graph: DiGraph):
 	"""Validate the graph given as parameter. Especially checks if it is empty or contains cycles.
