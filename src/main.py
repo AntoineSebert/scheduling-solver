@@ -179,6 +179,7 @@ def main():
 	nx.draw_planar(G)
 	plt.show()
 	"""
+	draw_console(G)
 
 	# solve it
 	print("Solving the scheduling problem...")
