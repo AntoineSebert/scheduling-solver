@@ -145,6 +145,24 @@ def validate(graph: DiGraph):
 	else:
 		raise HasACycle("The provided directed graph must be acyclic.")
 
+def is_equitable(graph: DiGraph, arch: List[int]) -> bool:
+	"""Test whether an equitable coloration of the graph is possible or not.
+
+	Parameters
+	----------
+	graph : DiGraph
+		The directed oriented graph imported from the *.tsk* file.
+	arch : List[int]
+		The processor architecture imported from the *.cfg* file.
+
+	Returns
+	-------
+	bool
+		Returns `True` if an equitable coloration is possible, and `False` otherwise.
+	"""
+
+	return max([graph.degree(node) for node in graph.nodes]) <= sum(arch)
+
 # ENTRY POINT #########################################################################################################
 
 def main():
