@@ -82,7 +82,7 @@ pipenv --python 3.7
 
 Install all the dependencies by running the following:
 ```bash
-pipenv install --dev 
+pipenv install --dev
 ```
 
 ## Launch
@@ -131,3 +131,12 @@ pipenv graph
 ## Roadmap
 
 - [ ] 24/09/2019 - 01/10/2019 | @all | Investigate possible solutions
+- [ ] logging : https://docs.python.org/3/library/logging.html or https://github.com/Delgan/loguru + verbose output
+- [ ] time benchmark
+- [ ] progressbar
+- [ ] benchmark strats
+- [ ] random problem generation : https://networkx.github.io/documentation/stable/reference/randomness.html
+- [ ] support multiple graph file formats
+- [ ] parallelize : https://docs.python.org/3/library/asyncio-task.html
+- [ ] catch all exceptions : https://docs.python.org/3/library/contextlib.html
+- [ ] select analysis tools
