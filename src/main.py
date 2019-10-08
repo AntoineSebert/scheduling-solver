@@ -255,16 +255,16 @@ def main():
 
 	# create graph
 	print("Generating graph from  the '.tsk' file...")
-	G = read_graphml(file_pair[0].name) # add custom named tuples
+	G = DiGraph(read_graphml(file_pair[0].name))
 	print("Validating the graph...")
 	validate(G)
 
 	# display
-	draw_console(G)
 	"""
 	pos = nx.layout.spring_layout(G)
 	nx.draw_networkx(G, pos)
 	plt.show()
+	draw_console(G)
 	"""
 
 	# get machine architecture
@@ -277,32 +277,34 @@ def main():
 
 	# display
 	print("Number of cores and processors: ")
-	print(*arch, sep='\n')
+	print("\t", *arch)
+
+	# Generate schedulable colorations
+	print("Generating schedulable colorations...")
+	colorations = validate_colorations(G, generate_colorations(G, arch))
+	if len(colorations) == 0:
+		print("No possible coloration. Terminating...")
+		return -1
+	print("Colorations found: ")
+	for strategy_name, coloration in colorations.items():
+		print("\t", strategy_name, ":", coloration)
 
 	# color graph
 	print("Coloring graph...")
-	strategies = {
-		'largest_first': True,
-		'random_sequential': True,
-		'smallest_last': True,
-		'independent_set': False,
-		'DSATUR': False
-	}
-	if max([G.degree(node) for node in G.nodes]) <= sum(arch):
-		equitable_color(G, sum(arch))
-	else:
-		greedy_color(G, 'saturation_largest_first')
+	"""
+	for node in coloration:
+		G.nodes[node]['color'] = coloration[node]
+	"""
 
 	# display
 	"""
 	nx.draw_planar(G)
 	plt.show()
-	"""
 	draw_console(G)
+	"""
 
 	# solve it
 	print("Solving the scheduling problem...")
-	# ...
 
 	# validate it
 	print("Validating the solution...")
