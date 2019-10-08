@@ -17,13 +17,9 @@ def utilization(processes: List[nodes]) -> float:
 	-------
 	float
 		The processor utilization, computed from the periods and WCETs of all processes.
-
-	See Also
-	--------
-	sufficient_condition, is_schedulable
 	"""
 
-	return sum([Fraction(int(n.wcet), int(n.period)) for n in processes])
+	return sum([Fraction(int(n["wcet"]), int(n["period"])) for n in processes])
 
 def sufficient_condition(count: int) -> float:
 	"""Determine the sufficient condition for schedulability of a processor or core.
@@ -37,10 +33,6 @@ def sufficient_condition(count: int) -> float:
 	-------
 	float
 		The sufficient utilization rate for a count of processes to be schedulable.
-
-	See Also
-	--------
-	utilization, is_schedulable
 	"""
 
 	return count * (pow(2, 1 / count) - 1)
@@ -57,10 +49,6 @@ def is_schedulable(processes: List[nodes]) -> bool:
 	-------
 	bool
 		A boolean set to 'True' if the `processes` are schedulable, and 'False' otherise.
-
-	See Also
-	--------
-	utilization, sufficient_condition
 	"""
 
-	return processor_use(processes) <= sufficient_condition(len(processes))
+	return utilization(processes) <= sufficient_condition(len(processes))
