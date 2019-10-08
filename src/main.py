@@ -20,7 +20,6 @@ Options:
 	--benchmark		Benchmark the greedy coloration strategies.
 	--task <TASK>	The graph data in GraphML format [default: "data/case_1.tsk"].
 	--conf <CONF>	The architecture data in XML [default: "data/case_1.cfg"].
-
 """
 
 """
@@ -30,26 +29,24 @@ Resources
 - https://docs.microsoft.com/en-us/visualstudio/python/working-with-c-cpp-python-in-visual-studio?view=vs-2019
 - https://numpydoc.readthedocs.io/en/latest/format.html
 
-Data structure : acyclic directed weighted graph
-
 Design patterns
 - https://github.com/faif/python-patterns/blob/master/patterns/behavioral/strategy.py
 - https://github.com/faif/python-patterns/blob/master/patterns/behavioral/chain_of_responsibility__py3.py
 - https://github.com/faif/python-patterns/blob/master/patterns/behavioral/chaining_method.py
 
-Analysis
-- https://github.com/nedbat/coveragepy
-- https://github.com/facebook/pyre-check
-- https://github.com/python/mypy
-- https://gitlab.com/pycqa/flake8
-- https://github.com/cyrus-and/gdb-dashboard
-"""
-
-"""
-logging : https://docs.python.org/3/library/logging.html + verbose output + time benchmark
-progressbar
-benchmark strats
-random problem generation : https://networkx.github.io/documentation/stable/reference/randomness.html
+Static analysis
+	tests
+		https://github.com/pytest-dev/pytest
+	type checking
+		https://github.com/python/mypy
+	style & quality
+		https://gitlab.com/pycqa/flake8
+	lint
+		https://github.com/psf/black
+Runtime analysis
+	https://github.com/nedbat/coveragepy
+	https://github.com/agermanidis/livepython
+	https://github.com/benfred/py-spy
 """
 
 # IMPORTS #############################################################################################################
