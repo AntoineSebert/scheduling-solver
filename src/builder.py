@@ -3,34 +3,39 @@
 
 # IMPORTS #############################################################################################################
 
-from typing import List, Callable, FrozenSet, Tuple
-import logging
+from typing import List, Tuple
 from pathlib import Path
-import xml.etree.cElementTree as et
+import xml.etree.ElementTree as et
+import logging
 
 from networkx import DiGraph
 from networkx.readwrite.graphml import read_graphml
 from networkx.algorithms.dag import is_directed_acyclic_graph
 
 from type_aliases import Architecture
+from timed import timed_callable
 
 # FUNCTIONS ###########################################################################################################
 
-"""Create the processor architecture from the configuration file.
+@timed_callable("Generating architecture from the '.cfg' file...")
+def import_arch(filepath: Path) -> Architecture:
+	"""Create the processor architecture from the configuration file.
 
-Parameters
-----------
-filepath : Path
-	The `Path` to the *.cfg* file describing the processor architecture.
+	Parameters
+	----------
+	filepath : Path
+		The `Path` to the *.cfg* file describing the processor architecture.
 
-Returns
--------
-Architecture
-	A `List`, each entry being a CPU, containing `List`s, each entry being a core, of integers, each integer being the `MacroTick` of the core.
-	Basically we have : MacroTick = Architecture[cpu[core]].
-"""
-import_arch: Callable[[Path], Architecture] = lambda filepath: [[core.attrib["MacroTick"] for core in corelist] for corelist in [cpu.findall('Core') for cpu in et.parse(filepath).findall("Cpu")]]
+	Returns
+	-------
+	Architecture
+		A `List`, each entry being a CPU, containing `List`s, each entry being a core, of integers, each integer being the `MacroTick` of the core.
+		Basically we have : MacroTick = Architecture[cpu[core]].
+	"""
 
+	return [[core.attrib["MacroTick"] for core in corelist] for corelist in [cpu.findall('Core') for cpu in et.parse(filepath).findall("Cpu")]] # order elements by id
+
+@timed_callable("Generating graph from  the '.tsk' file...")
 def import_graph(filepath: Path) -> int:
 	for cpu in et.parse(filepath).find("graph").iter():
 		print(cpu)
@@ -83,25 +88,15 @@ def problem_builder(folder_path: Path) -> Tuple[DiGraph, Architecture]:
 		A par containing a `DiGraph` and an `Architecture` build from the files.
 	"""
 
-	logging.getLogger("main_logger").info("Gathering the required files...")
 	filepath_pair = import_files_from_folder(folder_path)
-	logging.getLogger("main_logger").info("Done.")
 
-	logging.getLogger("main_logger").info("Generating graph from  the '.tsk' file...")
 	graph = DiGraph(read_graphml(import_graph(filepath_pair[0])))
 	if not is_directed_acyclic_graph(graph):
 		raise NetworkXNotImplemented("The graph must be acyclic.")
-	logging.getLogger("main_logger").info("Done.")
 
-	logging.getLogger("main_logger").info("Generating architecture from the '.cfg' file...")
 	arch = import_arch(filepath_pair[1])
-	logging.getLogger("main_logger").info("Done.")
 
 	"""
-	# test if architecture is valid
-	if len(arch) == 0:
-		raise NoProcessor("The configuration must include at least one processor.")
-
 	# display
 	print("Number of cores and processors: ")
 	print("\t", *arch)
