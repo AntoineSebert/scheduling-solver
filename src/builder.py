@@ -6,11 +6,14 @@
 from typing import List, Tuple
 from pathlib import Path
 import xml.etree.ElementTree as et
+from xml.etree.ElementTree import ElementTree, Element, SubElement, tostring
 import logging
 
+import xml.dom.minidom
+
 from networkx import DiGraph
-from networkx.readwrite.graphml import read_graphml
-from networkx.algorithms.dag import is_directed_acyclic_graph
+from networkx.readwrite.graphml import parse_graphml
+from networkx.algorithms.dag import is_directed_acyclic_graph, dag_longest_path
 
 from type_aliases import Architecture
 from timed import timed_callable
@@ -36,9 +39,88 @@ def import_arch(filepath: Path) -> Architecture:
 	return [[core.attrib["MacroTick"] for core in corelist] for corelist in [cpu.findall('Core') for cpu in et.parse(filepath).findall("Cpu")]] # order elements by id
 
 @timed_callable("Generating graph from  the '.tsk' file...")
-def import_graph(filepath: Path) -> int:
-	for cpu in et.parse(filepath).find("graph").iter():
-		print(cpu)
+def import_graph(filepath: Path) -> str:
+	"""Imports data from the given file and converts it into GraphML, then returns it.
+
+	Parameters
+	----------
+	filepath : Path
+		The `Path` to the *.tsk* file describing the task graph.
+
+	Returns
+	-------
+	str
+		A `str` object containing a GraphML parsed from the file given as parameter.
+	"""
+
+	graph_tree = et.parse(filepath)
+
+	graphml = Element("graphml", {
+		"xmlns": "http://graphml.graphdrawing.org/xmlns",
+		"xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
+		"xsi:schemaLocation": "http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.1/graphml.xsd"
+	})
+
+	# Add <key> elements for <node> tags.
+	for attribute, value in graph_tree.find("Graph/Node").attrib.items():
+		if attribute != "Id":
+			key = SubElement(graphml, "key", {
+				"id": "d" + str(len(graphml)),
+				"for": "node",
+				"attr.name": attribute.lower(),
+				"attr.type": "string" if attribute == "Name" else "int"
+			})
+
+			if attribute != "Name":
+				default = SubElement(key, "default")
+				default.text = "-1" if attribute == "MaxJitter" or attribute == "CoreId" else "0"
+
+	# Add <key> elements for <graph> tags
+	for attribute, value in graph_tree.find("Graph/Chain").attrib.items():
+		key = SubElement(graphml, "key", {
+			"id": "d" + str(len(graphml)),
+			"for": "graph",
+			"attr.name": attribute.lower(),
+			"attr.type": "string" if attribute == "Name" else "int"
+		})
+
+		if attribute != "Name":
+			default = SubElement(key, "default")
+			default.text = "0"
+
+	# Add <graph> tags and their children <data>, <node> and <edge>
+	for chain in graph_tree.iter("Chain"):
+		graph = SubElement(graphml, "graph", {
+			"id": chain.get("Name"),
+			"edgedefault": "directed"
+		})
+
+		# Add <data> tags for <graph> tag
+		for key, value in chain.attrib.items():
+			if key != "Name":
+				data = SubElement(graph, "data", { "key": graphml.findall("key[@attr.name='" + key.lower() + "']")[0].get("id") })
+				data.text = value
+
+		# Add <node> tags for <graph> tag
+		for i, runnable in enumerate(chain.iter("Runnable")):
+			node = SubElement(graph, "node", { "id": str(len(graph.findall("node"))) })
+
+			# Add <data> tags for <node> tag
+			for key, value in graph_tree.findall("Graph/Node[@Name='" + runnable.get("Name") + "']")[0].attrib.items():
+				if key != "Id":
+					data = SubElement(node, "data", { "key": graphml.findall("key[@attr.name='" + key.lower() + "']")[0].get("id") })
+					data.text = value
+
+			# Add <edge> tag the <node> tag and its direct predecessor
+			if i != 0:
+				graph.append(Element("edge", {
+					"source": graph.findall("node")[i - 1].get("id"),
+					"target": node.get("id")
+				}))
+
+	logging.info("Imported graph:\n" + xml.dom.minidom.parseString(tostring(graphml)).toprettyxml())
+
+	return tostring(graphml)
 
 def import_files_from_folder(folder_path: Path) -> Tuple[Path, Path]:
 	"""Attempts to gather the required files in `folder_path`.
@@ -90,13 +172,14 @@ def problem_builder(folder_path: Path) -> Tuple[DiGraph, Architecture]:
 
 	filepath_pair = import_files_from_folder(folder_path)
 
-	graph = DiGraph(read_graphml(import_graph(filepath_pair[0])))
+	graph = DiGraph(parse_graphml(import_graph(filepath_pair[0])))
+
 	if not is_directed_acyclic_graph(graph):
 		raise NetworkXNotImplemented("The graph must be acyclic.")
 
 	arch = import_arch(filepath_pair[1])
 
-	"""
+	return (graph, arch)
 	# display
 	print("Number of cores and processors: ")
 	print("\t", *arch)
