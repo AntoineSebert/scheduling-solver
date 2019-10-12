@@ -55,7 +55,7 @@ def create_cli_parser() -> ArgumentParser:
 
 	Returns
 	-------
-	ArgumentParser
+	parser : ArgumentParser
 		An `ArgumentParser` object.
 	"""
 

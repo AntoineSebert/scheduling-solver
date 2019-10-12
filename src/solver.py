@@ -104,6 +104,9 @@ def color_graph(graph: DiGraph, coloration: Dict[object, int]):
 		graph.nodes[node]['color'] = coloration[node]
 
 def scheduler(graph: DiGraph):
+	# https://docs.python.org/3.8/library/threading.html?highlight=thread
+	# https://docs.python.org/3.7/library/concurrent.futures.html
+
 	# generate schedulable colorations
 	print("Generating schedulable colorations...")
 	colorations = validate_colorations(graph, generate_colorations(graph, arch))
