@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<graphml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+	<graph>
+		<node id="3" name="DM2" wcet="568" period="80000" Deadline="80000" MaxJitter="-1" Offset="0" CpuId="0" CoreId="-1" />
+		<node id="4" name="DM3" wcet="179" period="20000" Deadline="20000" MaxJitter="-1" Offset="0" CpuId="0" CoreId="-1" />
+		<node id="5" name="DM4" wcet="357" period="10000" Deadline="10000" MaxJitter="964" Offset="0" CpuId="0" CoreId="-1" />
+		<node id="6" name="DM5" wcet="1627" period="80000" Deadline="80000" MaxJitter="-1" Offset="0" CpuId="0" CoreId="-1" />
+		<node id="7" name="DM6" wcet="1508" period="80000" Deadline="80000" MaxJitter="0" Offset="0" CpuId="0" CoreId="-1" />
+		<node id="8" name="DM7" wcet="552" period="20000" Deadline="20000" MaxJitter="-1" Offset="0" CpuId="0" CoreId="-1" />
+		<node id="9" name="DM8" wcet="69" period="5000" Deadline="5000" MaxJitter="-1" Offset="0" CpuId="0" CoreId="1" />
+		<node id="10" name="SF9" wcet="2827" period="40000" Deadline="40000" MaxJitter="-1" Offset="0" CpuId="1" CoreId="-1" />
+		<node id="11" name="SF10" wcet="89" period="40000" Deadline="40000" MaxJitter="-1" Offset="0" CpuId="1" CoreId="1" />
+		<node id="13" name="TC12" wcet="875" period="10000" Deadline="10000" MaxJitter="-1" Offset="0" CpuId="2" CoreId="0" />
+		<node id="12" name="TC11" wcet="4710" period="20000" Deadline="20000" MaxJitter="-1" Offset="0" CpuId="2" CoreId="3" />
+		<node id="1" name="CT-PRE0" wcet="1" period="10000" Deadline="8800" MaxJitter="-1" Offset="0" CpuId="3" CoreId="0" />
+		<node id="2" name="CT-POST1" wcet="2" period="40000" Deadline="30000" MaxJitter="-1" Offset="29998" CpuId="3" CoreId="2" />
+		<Chain Budget="110000" Priority="1" name="Chain0">
+			<Runnable name="CT-PRE0" />
+			<Runnable name="DM3" />
+			<Runnable name="DM3" />
+			<Runnable name="DM4" />
+			<Runnable name="DM7" />
+			<Runnable name="DM4" />
+			<Runnable name="DM3" />
+			<Runnable name="DM7" />
+			<Runnable name="DM7" />
+			<Runnable name="DM8" />
+			<Runnable name="CT-POST1" />
+		</Chain>
+		<Chain Budget="50000" Priority="1" name="Chain1">
+			<Runnable name="DM4" />
+			<Runnable name="DM3" />
+			<Runnable name="DM7" />
+			<Runnable name="CT-POST1" />
+		</Chain>
+		<Chain Budget="60000" Priority="1" name="Chain2">
+			<Runnable name="CT-PRE0" />
+			<Runnable name="DM8" />
+			<Runnable name="DM3" />
+			<Runnable name="DM8" />
+			<Runnable name="DM7" />
+		</Chain>
+	</graph>
+</graphml>
