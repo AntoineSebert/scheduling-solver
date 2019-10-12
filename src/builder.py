@@ -22,7 +22,7 @@ from timed import timed_callable
 
 @timed_callable("Generating architecture from the '.cfg' file...")
 def import_arch(filepath: Path) -> Architecture:
-	"""Create the processor architecture from the configuration file.
+	"""Create the processor architecture from the configuration file, then returns it.
 
 	Parameters
 	----------
@@ -36,7 +36,12 @@ def import_arch(filepath: Path) -> Architecture:
 		Basically we have : MacroTick = Architecture[cpu[core]].
 	"""
 
-	return [[core.attrib["MacroTick"] for core in corelist] for corelist in [cpu.findall('Core') for cpu in et.parse(filepath).findall("Cpu")]] # order elements by id
+	sorting = lambda e: e.get("Id")
+	arch = [[core.get("MacroTick") for core in sorted(corelist, key=sorting)] for corelist in [cpu for cpu in sorted(et.parse(filepath).findall("Cpu"), key=sorting)]]
+
+	logging.info("Imported architecture:\n" + '\n\t'.join(','.join(cpu) for cpu in arch))
+
+	return arch
 
 @timed_callable("Generating graph from  the '.tsk' file...")
 def import_graph(filepath: Path) -> str:
