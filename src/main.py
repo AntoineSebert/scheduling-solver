@@ -43,10 +43,10 @@ Runtime analysis
 from argparse import ArgumentParser
 from pathlib import Path
 import logging
-from typing import NoReturn
 
 from builder import problem_builder
 from solver import scheduler
+from log import colored_handler
 
 # FUNCTIONS ###########################################################################################################
 
@@ -75,18 +75,6 @@ def create_cli_parser() -> ArgumentParser:
 
 	return parser
 
-def configure_logger(verbosity: bool) -> NoReturn:
-	"""Configures the logger.
-
-	Parameters
-	----------
-	verbosity : bool
-		If this argument is `True`, the `Logger`'s vebosity level is set to `10`, and otherwise to `30`.
-	"""
-
-	logging.basicConfig(format='[%(asctime)s][%(levelname)s]:%(message)s', datefmt='%H:%M:%S')
-	logging.getLogger("main_logger").setLevel(10 if verbosity else 30)
-
 # ENTRY POINT #########################################################################################################
 
 def main() -> int:
@@ -99,7 +87,7 @@ def main() -> int:
 	"""
 
 	args = create_cli_parser().parse_args()
-	configure_logger(False if args.verbose is None else True)
+	logging.getLogger().addHandler(colored_handler(verbose=False if args.verbose == None else True))
 
 	graph = problem_builder(args.folder)
 	# display

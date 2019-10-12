@@ -66,7 +66,7 @@ def import_files_from_folder(folder_path: Path) -> Tuple[Path, Path]:
 	if tsk is None or cfg is None:
 		raise FileNotFoundError("The folder " + folder_path.name + " include at least one *.tsk file and one *.cfg file.")
 
-	logging.getLogger("main_logger").info("Files found:\n\t" + tsk.name + "\n\t" + cfg.name)
+	logging.info("Files found:\n\t" + tsk.name + "\n\t" + cfg.name)
 
 	if tsk.name[:-len(tsk.suffix)] != cfg.name[:-len(tsk.suffix)]:
 		logging.warning("The names of the files mismatch: '" + tsk.name + "' and '" + cfg.name + "\'")

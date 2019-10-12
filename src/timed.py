@@ -34,11 +34,11 @@ def timed_callable(message: str) -> Optional[Any]:
 	def callable_decorator(callable: Callable) -> Optional[Any]:
 		def timed_wrapper(*args, **kwds) -> Optional[Any]:
 
-			logging.getLogger().info('\033[92m' + message + '\033[0m')
+			logging.info(message)
 			start = perf_counter()
 			result = callable(*args, **kwds) # if args != None and kwargs == None
 			end = perf_counter()
-			logging.getLogger().info("\033[92mDone in " + str(end - start) + "s.\033[0m")
+			logging.info("Done in " + str(end - start) + "s.")
 
 			return result
 		return timed_wrapper
