@@ -180,17 +180,3 @@ def problem_builder(folder_path: Path) -> Tuple[DiGraph, Architecture]:
 	arch = import_arch(filepath_pair[1])
 
 	return (graph, arch)
-	# display
-	print("Number of cores and processors: ")
-	print("\t", *arch)
-
-	# print target
-	print("Theoretical shortest scheduling time:")
-	sched_time = 0
-	longest_path = dag_longest_path(G)
-	for i in range(0, len(longest_path) - 1):
-		node = longest_path[i]
-		sched_time += G.nodes(data=True)[node]['wcet'] + G.edges[node, longest_path[i + 1]]['weight']
-	sched_time += G.nodes(data=True)[longest_path[-1]]['wcet']
-	print("\t", sched_time)
-	"""
