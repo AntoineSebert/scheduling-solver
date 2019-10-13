@@ -39,7 +39,7 @@ def import_arch(filepath: Path) -> Architecture:
 	sorting = lambda e: e.get("Id")
 	arch = [[core.get("MacroTick") for core in sorted(corelist, key=sorting)] for corelist in [cpu for cpu in sorted(et.parse(filepath).findall("Cpu"), key=sorting)]]
 
-	logging.info("Imported architecture:\n" + '\n\t'.join(','.join(cpu) for cpu in arch))
+	logging.info("Imported architecture:\n\t" + '\n\t'.join(','.join(cpu) for cpu in arch))
 
 	return arch
 
@@ -127,6 +127,7 @@ def import_graph(filepath: Path) -> str:
 
 	return tostring(graphml)
 
+@timed_callable("Gathering the required files...")
 def import_files_from_folder(folder_path: Path) -> Tuple[Path, Path]:
 	"""Attempts to gather the required files in `folder_path`.
 
@@ -147,16 +148,16 @@ def import_files_from_folder(folder_path: Path) -> Tuple[Path, Path]:
 		If no `*.tsk` or `*.cfg` file can be found.
 	"""
 
-	tsk = [element for element in list(folder_path.glob('**/*.tsk')) if element.is_file()][0]
-	cfg = [element for element in list(folder_path.glob('**/*.cfg')) if element.is_file()][0]
+	tsk = [element for element in folder_path.glob('*.tsk') if element.is_file()][0]
+	cfg = [element for element in folder_path.glob('*.cfg') if element.is_file()][0]
 
-	if tsk is None or cfg is None:
+	if tsk == None or cfg == None:
 		raise FileNotFoundError("The folder " + folder_path.name + " include at least one *.tsk file and one *.cfg file.")
 
 	logging.info("Files found:\n\t" + tsk.name + "\n\t" + cfg.name)
 
-	if tsk.name[:-len(tsk.suffix)] != cfg.name[:-len(tsk.suffix)]:
-		logging.warning("The names of the files mismatch: '" + tsk.name + "' and '" + cfg.name + "\'")
+	if tsk.stem != cfg.stem:
+		logging.warning("The names of the files mismatch: '" + tsk.stem + "' and '" + cfg.stem + "'")
 
 	return (tsk, cfg)
 
