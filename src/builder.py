@@ -3,18 +3,18 @@
 
 # IMPORTS #############################################################################################################
 
-from typing import List, Tuple
-from pathlib import Path
-import xml.etree.ElementTree as et
-from xml.etree.ElementTree import ElementTree, Element, SubElement, tostring
 import logging
+from pathlib import Path
+from typing import List, Tuple, Dict, NoReturn
 import xml.dom.minidom
+import xml.etree.ElementTree as et
+from xml.etree.ElementTree import Element, SubElement, tostring
 
 from networkx import DiGraph
-from networkx.readwrite.graphml import parse_graphml
 from networkx.algorithms.dag import is_directed_acyclic_graph
+from networkx.readwrite.graphml import parse_graphml
 
-from type_aliases import Architecture
+from type_aliases import Architecture, Problem
 from timed import timed_callable
 
 # FUNCTIONS ###########################################################################################################
@@ -26,7 +26,7 @@ def import_arch(filepath: Path) -> Architecture:
 	Parameters
 	----------
 	filepath : Path
-		The `Path` to the *.cfg* file describing the processor architecture.
+		A `Path` poiting to a *.cfg* file describing the processor architecture.
 
 	Returns
 	-------
@@ -42,32 +42,20 @@ def import_arch(filepath: Path) -> Architecture:
 
 	return arch
 
-@timed_callable("Generating graph from  the '.tsk' file...")
-def import_graph(filepath: Path) -> str:
-	"""Imports data from the given file and converts it into GraphML, then returns it.
+def insert_node_keys(graphml: Element, attributes: Dict[str, str]) -> NoReturn:
+	"""Add the <key> tags to a <graphml> tag from a dict of <node> attributes.
 
 	Parameters
 	----------
-	filepath : Path
-		The `Path` to the *.tsk* file describing the task graph.
-
-	Returns
-	-------
-	str
-		A `str` object containing a GraphML parsed from the file given as parameter.
+	graphml : Element
+		A <graphml> root tag.
+	attributes : Dict[str, str]
+		The attribute to insert into `graphml` as <key> tags.
 	"""
 
-	graph_tree = et.parse(filepath)
-
-	graphml = Element("graphml", {
-		"xmlns": "http://graphml.graphdrawing.org/xmlns",
-		"xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
-		"xsi:schemaLocation": "http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.1/graphml.xsd"
-	})
-
-	# Add <key> elements for <node> tags.
-	for attribute, value in graph_tree.find("Graph/Node").attrib.items():
+	for attribute, value in attributes.items():
 		if attribute != "Id":
+
 			key = SubElement(graphml, "key", {
 				"id": "d" + str(len(graphml)),
 				"for": "node",
@@ -79,22 +67,64 @@ def import_graph(filepath: Path) -> str:
 				default = SubElement(key, "default")
 				default.text = "-1" if attribute == "MaxJitter" or attribute == "CoreId" else "0"
 
-	# Add <key> elements for <graph> tags
-	for attribute, value in graph_tree.find("Graph/Chain").attrib.items():
-		key = SubElement(graphml, "key", {
-			"id": "d" + str(len(graphml)),
-			"for": "graph",
-			"attr.name": attribute.lower(),
-			"attr.type": "string" if attribute == "Name" else "int"
-		})
+def insert_chain_keys(graphml: Element, attributes: Dict[str, str]) -> NoReturn:
+	"""Add the <key> tags to a <graph> from a dict of <chain> attributes.
+
+	Parameters
+	----------
+	graphml : Element
+		A <graphml> root tag.
+	attributes : Dict[str, str]
+		The attribute to insert into `graphml` as <key> tags.
+	"""
+
+	for attribute, value in attributes.items():
 
 		if attribute != "Name":
+			key = SubElement(graphml, "key", {
+				"id": "d" + str(len(graphml)),
+				"for": "graph",
+				"attr.name": attribute.lower(),
+				"attr.type": "string" if attribute == "Name" else "int"
+			})
+
 			default = SubElement(key, "default")
 			default.text = "0"
 
+@timed_callable("Generating graph from  the '.tsk' file...")
+def import_graph(filepath: Path) -> List[str]:
+	"""Imports data from the given file and converts it into GraphML graphs, then returns it.
+	One graph will be generated for each <Chain>.
+
+	Parameters
+	----------
+	filepath : Path
+		The `Path` to the *.tsk* file describing the task graph.
+
+	Returns
+	-------
+	List[str]
+		A list of `str` each containing a GraphML graph parsed from the <Chain> tags.
+	"""
+
+	graph_tree = et.parse(filepath)
+	graph_list = list()
+
 	# Add <graph> tags and their children <data>, <node> and <edge>
 	for chain in graph_tree.iter("Chain"):
-		graph = SubElement(graphml, "graph", {
+		# Add <graphml> document root
+		graph_list.append(Element("graphml", {
+			"xmlns": "http://graphml.graphdrawing.org/xmlns",
+			"xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
+			"xsi:schemaLocation": "http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.1/graphml.xsd"
+		}))
+
+		# Add keys # TODO: transform into static elements
+		insert_chain_keys(graph_list[-1], graph_tree.find("Graph/Chain").attrib)
+		insert_node_keys(graph_list[-1], graph_tree.find("Graph/Node").attrib)
+
+		# Add <graph> tag
+		graph = SubElement(graph_list[-1], "graph", {
 			"id": chain.get("Name"),
 			"edgedefault": "directed"
 		})
@@ -102,7 +132,7 @@ def import_graph(filepath: Path) -> str:
 		# Add <data> tags for <graph> tag
 		for key, value in chain.attrib.items():
 			if key != "Name":
-				data = SubElement(graph, "data", { "key": graphml.findall("key[@attr.name='" + key.lower() + "']")[0].get("id") })
+				data = SubElement(graph, "data", { "key": graph_list[-1].findall("key[@attr.name='" + key.lower() + "']")[0].get("id") })
 				data.text = value
 
 		# Add <node> tags for <graph> tag
@@ -112,7 +142,7 @@ def import_graph(filepath: Path) -> str:
 			# Add <data> tags for <node> tag
 			for key, value in graph_tree.findall("Graph/Node[@Name='" + runnable.get("Name") + "']")[0].attrib.items():
 				if key != "Id":
-					data = SubElement(node, "data", { "key": graphml.findall("key[@attr.name='" + key.lower() + "']")[0].get("id") })
+					data = SubElement(node, "data", { "key": graph_list[-1].findall("key[@attr.name='" + key.lower() + "']")[0].get("id") })
 					data.text = value
 
 			# Add <edge> tag the <node> tag and its direct predecessor
@@ -122,9 +152,11 @@ def import_graph(filepath: Path) -> str:
 					"target": node.get("id")
 				}))
 
-	logging.info("Imported graph:\n" + xml.dom.minidom.parseString(tostring(graphml)).toprettyxml())
+	graph_list = [tostring(graph) for graph in graph_list]
 
-	return tostring(graphml)
+	logging.info("Imported graphs:\n" + '\n'.join([xml.dom.minidom.parseString(graph).toprettyxml() for graph in graph_list]))
+
+	return graph_list
 
 @timed_callable("Gathering the required files...")
 def import_files_from_folder(folder_path: Path) -> Tuple[Path, Path]:
@@ -160,7 +192,7 @@ def import_files_from_folder(folder_path: Path) -> Tuple[Path, Path]:
 
 	return (tsk, cfg)
 
-def problem_builder(folder_path: Path) -> Tuple[DiGraph, Architecture]:
+def problem_builder(folder_path: Path) -> Problem:
 	"""Creates a representation of the problem from the files in `folder_path`, and returns it.
 
 	Parameters
@@ -171,17 +203,18 @@ def problem_builder(folder_path: Path) -> Tuple[DiGraph, Architecture]:
 
 	Returns
 	-------
-	(DiGraph, Architecture)
+	Problem
 		A par containing a `DiGraph` and an `Architecture` build from the files.
 	"""
 
 	filepath_pair = import_files_from_folder(folder_path)
 
-	graph = DiGraph(parse_graphml(import_graph(filepath_pair[0])))
+	graphs = [DiGraph(parse_graphml(graph)) for graph in import_graph(filepath_pair[0])]
 
-	if not is_directed_acyclic_graph(graph):
-		raise NetworkXNotImplemented("The graph must be acyclic.")
+	for graph in graphs:
+		if not is_directed_acyclic_graph(graph):
+			raise NetworkXNotImplemented("The graphs must be acyclic.")
 
 	arch = import_arch(filepath_pair[1])
 
-	return (graph, arch)
+	return (graphs, arch)
