@@ -8,12 +8,11 @@ from pathlib import Path
 import xml.etree.ElementTree as et
 from xml.etree.ElementTree import ElementTree, Element, SubElement, tostring
 import logging
-
 import xml.dom.minidom
 
 from networkx import DiGraph
 from networkx.readwrite.graphml import parse_graphml
-from networkx.algorithms.dag import is_directed_acyclic_graph, dag_longest_path
+from networkx.algorithms.dag import is_directed_acyclic_graph
 
 from type_aliases import Architecture
 from timed import timed_callable
