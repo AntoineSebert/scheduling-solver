@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from typing import List # https://docs.python.org/3/library/stdtypes.html#list
-from collections import namedtuple # https://docs.python.org/3/library/collections.html#collections.namedtuple
+from typing import List, Tuple
+from collections import namedtuple
+from networkx import DiGraph
 
 Architecture = List[List[int]]
 
 Slice = namedtuple('Slice', ['id', 'start', 'end'])
 
+Problem = Tuple[List[DiGraph], Architecture]
 Solution = List[List[List[Slice]]]
