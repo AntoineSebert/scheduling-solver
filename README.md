@@ -89,7 +89,25 @@ pipenv install --dev
 
 Run the project with
 ```bash
-python src/main.py
+python src/main.py data_folder/
+```
+
+### Usage
+
+```
+Usage:
+	main.py --version
+	main.py (-h | --help)
+	main.py folder <DATASET_FOLDER>
+	main.py folder <DATASET_FOLDER> --verbose
+
+Arguments:
+	folder <DATASET_FOLDER>   The dataset folder that must contain one *.tsk file and one *.cfg file.
+
+Options:
+	-h --help	Show this screen.
+	--version	Show version.
+	--verbose	Toggle verbose output.
 ```
 
 ### Tests suit and other checks
@@ -111,9 +129,17 @@ Dependency Graph:
 pipenv graph
 ```
 
+## Simplified operation
+
+```mermaid
+graph LR
+Start(Start) -->|raw| Builder
+Builder -->|IR| Solver
+Solver -->|Solution| End(End)
+```
+
 ## File Hierarchy
 
-```
 + root/
   + data/
   | + case1.cfg
@@ -134,3 +160,4 @@ pipenv graph
 - [ ] random problem generation : https://networkx.github.io/documentation/stable/reference/randomness.html
 - [ ] parallelize : https://docs.python.org/3.7/library/threading.html, https://docs.python.org/3.7/library/queue.html or https://docs.python.org/3.7/library/concurrent.futures.html
 - [ ] catch all exceptions : https://docs.python.org/3/library/contextlib.html
+```
