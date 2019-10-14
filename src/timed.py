@@ -10,6 +10,7 @@ from functools import wraps
 
 # VARIABLES ###########################################################################################################
 
+global_time = 0
 
 # FUNCTIONS ###########################################################################################################
 
@@ -34,8 +35,8 @@ def timed_callable(message: str) -> Optional[Any]:
 
 	assert(0 < len(message))
 
-	@wraps(callable)
 	def callable_decorator(callable: Callable) -> Optional[Any]:
+		@wraps(callable)
 		def timed_wrapper(*args, **kwds) -> Optional[Any]:
 
 			logging.info(message)
