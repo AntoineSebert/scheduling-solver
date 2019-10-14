@@ -213,16 +213,27 @@ def problem_builder(folder_path: Path) -> Problem:
 	-------
 	Problem
 		A par containing a `DiGraph` and an `Architecture` build from the files.
+
+	Raises
+	------
+	NetworkXNotImplemented
+		If one of the graphs contains a cycle.
 	"""
 
 	filepath_pair = import_files_from_folder(folder_path)
 
-	graphs = [DiGraph(parse_graphml(graph)) for graph in import_graph(filepath_pair[0])]
+	logging.info("Files found:\n\t" + filepath_pair[0].name + "\n\t" + filepath_pair[1].name)
 
-	for graph in graphs:
+	graph_list = [DiGraph(parse_graphml(graph)) for graph in import_graph(filepath_pair[0])]
+
+	for graph in graph_list:
 		if not is_directed_acyclic_graph(graph):
 			raise NetworkXNotImplemented("The graphs must be acyclic.")
 
+	# logging.info("Imported graphs:\n" + '\n'.join([parseString(graph).toprettyxml() for graph in graph_list]))
+
 	arch = import_arch(filepath_pair[1])
 
-	return (graphs, arch)
+	logging.info("Imported architecture:\n\t" + '\n\t'.join(','.join(cpu) for cpu in arch))
+
+	return (graph_list, arch)
