@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# IMPORTS #############################################################################################################
+
 from fractions import Fraction
-from typing import List
+from typing import List, Callable
+
 from networkx import nodes
+
+# FUNCTIONS ###########################################################################################################
 
 """Determine the utilization load carried by a list of tasks.
 
@@ -17,7 +22,9 @@ Returns
 float
 	The processor utilization, computed from the periods and WCETs of all processes.
 """
-utilization: Callable[[List[nodes]], float] = lambda processes: sum([Fraction(int(n["wcet"]), int(n["period"])) for n in processes])
+utilization: Callable[[List[nodes]], float] = lambda processes: sum(
+	[Fraction(int(n["wcet"]), int(n["period"])) for n in processes]
+)
 
 """Determine the sufficient condition for schedulability of a processor or core.
 
@@ -45,4 +52,5 @@ Returns
 bool
 	A boolean set to 'True' if the `processes` are schedulable, and 'False' otherise.
 """
-is_schedulable: Callable[[List[nodes]], bool] = lambda processes: utilization(processes) <= sufficient_condition(len(processes))
+is_schedulable: Callable[[List[nodes]], bool] = lambda processes:\
+	utilization(processes) <= sufficient_condition(len(processes))

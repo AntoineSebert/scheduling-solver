@@ -1,9 +1,20 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# IMPORTS #############################################################################################################
+
+from typing import List, Dict
+from concurrent.futures import ThreadPoolExecutor
+
 from networkx import DiGraph
-from typing import *
-from logging import Logger
+
+import logging
+from timed import timed_callable
+from type_aliases import Architecture, Problem
+from rate_monotonic import is_schedulable
+
+# FUNCTIONS ###########################################################################################################
+
 
 def is_equitable(graph: DiGraph, arch: List[int]) -> bool:
 	"""Test whether an equitable coloration of the graph is possible or not.
@@ -20,23 +31,24 @@ def is_equitable(graph: DiGraph, arch: List[int]) -> bool:
 	bool
 		Returns `True` if an equitable coloration is possible, and `False` otherwise.
 	"""
-
+	print(graph.degree(graph.nodes["1"]))
 	return max([graph.degree(node) for node in graph.nodes]) <= sum(arch)
 
-def generate_colorations(graph: DiGraph, arch: List[int]) -> Dict[str, Dict[object, int]]:
-	"""Generate a graph coloration with an equitable strategy if possible, or potential graph colorations with greedy strategies.
+
+@timed_callable("Generating schedulable colorations...")
+def generate_colorations(problem: Problem) -> Dict[str, Dict[object, int]]:
+	"""Generate a graph coloration with an equitable strategy if possible,
+	or potential graph colorations with greedy strategies.
 
 	Parameters
 	----------
-	graph : DiGraph
-		The directed oriented graph imported from the *.tsk* file.
-	arch : List[int]
-		The processor architecture imported from the *.cfg* file.
+	problem: Problem
 
 	Returns
 	-------
 	Dict[Dict[object, int]]
-		A dictionary containing pairs of strategy names and possible graph colorations, each coloration being a dictionary containing pairs of nodes and colors.
+		A dictionary containing pairs of strategy names and possible graph colorations,
+		each coloration being a dictionary containing pairs of nodes and colors.
 	"""
 
 	if is_equitable(graph, arch):
@@ -89,13 +101,14 @@ def validate_colorations(graph: DiGraph, colorations: Dict[str, Dict[object, int
 
 	return valid_colorations
 
+
 def color_graph(graph: DiGraph, coloration: Dict[object, int]):
 	"""Color a graph using the given coloration.
 
 	Parameters
 	----------
 	graph : DiGraph
-		The directed oriented graph to color.
+		A directed oriented graph to color.
 	coloration : Dict[object, int]
 		The coloration to be applied to the graph.
 	"""

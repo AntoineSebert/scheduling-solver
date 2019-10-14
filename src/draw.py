@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import networkx as nx
+# IMPORTS #############################################################################################################
 
-def draw_console(graph: nx.DiGraph):
+import networkx
+from networkx import DiGraph
+
+# FUNCTIONS ###########################################################################################################
+
+
 	"""Prints all nodes, including their attributes, and all edges, in the console.
 
 	Parameters
@@ -15,5 +20,5 @@ def draw_console(graph: nx.DiGraph):
 	print("Printing graph content:")
 	for node in graph.nodes(data=True):
 		print("\t", node)
-	for line in nx.generate_edgelist(graph):
+	for line in networkx.generate_edgelist(graph):
 		print("\t", line)

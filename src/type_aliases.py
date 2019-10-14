@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# IMPORTS #############################################################################################################
+
 from typing import List, Tuple
 from collections import namedtuple
 from networkx import DiGraph
+
+# TYPE ALIASES ########################################################################################################
 
 Architecture = List[List[int]]
 
