@@ -116,22 +116,45 @@ def color_graph(graph: DiGraph, coloration: Dict[object, int]):
 	for node in coloration:
 		graph.nodes[node]['color'] = coloration[node]
 
-def scheduler(graph: DiGraph):
-	# https://docs.python.org/3.8/library/threading.html?highlight=thread
-	# https://docs.python.org/3.7/library/concurrent.futures.html
 
-	# generate schedulable colorations
-	print("Generating schedulable colorations...")
-	colorations = validate_colorations(graph, generate_colorations(graph, arch))
-	if len(colorations) == 0:
-		print("No possible coloration. Terminating...")
-		return -1
-	print("Colorations found: ")
-	for strategy_name, coloration in colorations.items():
-		print("\t", strategy_name, ":", coloration)
+def theoretical_scheduling_time(graph: DiGraph) -> int:
+	"""Computes the theoretical scheduling time of a graph.
 
-	# color graph
-	print("Coloring graph...")
+	Parameters
+	----------
+	graph : DiGraph
+		A directed oriented graph.
+
+	Returns
+	-------
+	int
+		The theoretical shortest scheduling time for `graph`.
+	"""
+
+	return sum([node[1]["wcet"] for node in graph.nodes(data=True)])
+
+
+@timed_callable("Computing shortest theoretical scheduling time...")
+def shortest_theoretical_scheduling(graph_list: List[DiGraph]) -> int:
+	"""Computes the shortest theoretical scheduling time from the longest scheduling path of all graphs.
+
+	Parameters
+	----------
+	graph_list: List[DiGraph]
+		The list of directed oriented graph imported from the `Problem`.
+
+	Returns
+	-------
+	int
+		The theoretical shortest scheduling time.
+	"""
+
+	with ThreadPoolExecutor(max_workers=len(graph_list)) as executor:
+		futures = [executor.submit(theoretical_scheduling_time, graph) for graph in graph_list]
+
+	return min([future.result() for future in futures])
+
+
 	"""
 	for node in coloration:
 		G.nodes[node]['color'] = coloration[node]
