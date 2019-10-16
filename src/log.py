@@ -109,13 +109,11 @@ class colored_handler(Handler, metaclass=Singleton):
 
 		Handler.__init__(self)
 		logging.getLogger().setLevel(0)
-		self._verbose = verbose
-
-		for key, value in self._colors.items():
-			self._formatters[key] = logging.Formatter(
-				fmt=value + '[%(asctime)s][%(levelname)s]: %(message)s' + self._reset,
-				datefmt='%H:%M:%S'
-			)
+		__class__._verbose = verbose
+		__class__._formatters = {key: logging.Formatter(
+			fmt=value + '[%(asctime)s][%(levelname)s]: %(message)s' + __class__._reset,
+			datefmt='%H:%M:%S'
+		) for key, value in __class__._colors.items()}
 
 	def emit(self, record) -> NoReturn:
 		"""Formats and prints a `LoggerRecord` parameter, depending on the verbosity.
@@ -127,5 +125,4 @@ class colored_handler(Handler, metaclass=Singleton):
 		"""
 
 		if __class__._verbose or 30 < record.levelno:
-		if self._verbose or 30 < record.levelno:
-			print(self._formatters[record.levelno].format(record))
+			print(__class__._formatters[record.levelno].format(record))
