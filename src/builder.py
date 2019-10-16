@@ -8,11 +8,10 @@ from pathlib import Path
 from typing import List, Tuple, NoReturn, Mapping
 import xml.etree.ElementTree as et
 from xml.etree.ElementTree import Element, SubElement, tostring
-from xml.dom.minidom import parseString
 
 from networkx import DiGraph, NetworkXNotImplemented
 from networkx.algorithms.dag import is_directed_acyclic_graph
-from networkx.readwrite.graphml import parse_graphml
+from networkx.readwrite.graphml import parse_graphml, generate_graphml
 
 from type_aliases import Architecture, Problem
 from timed import timed_callable
@@ -221,19 +220,15 @@ def problem_builder(folder_path: Path) -> Problem:
 	"""
 
 	filepath_pair = import_files_from_folder(folder_path)
-
 	logging.info("Files found:\n\t" + filepath_pair[0].name + "\n\t" + filepath_pair[1].name)
 
 	graph_list = [DiGraph(parse_graphml(graph)) for graph in import_graph(filepath_pair[0])]
-
 	for graph in graph_list:
 		if not is_directed_acyclic_graph(graph):
 			raise NetworkXNotImplemented("The graphs must be acyclic.")
-
-	# logging.info("Imported graphs:\n" + '\n'.join([parseString(graph).toprettyxml() for graph in graph_list]))
+	logging.info("Imported graphs:\n" + '\n'.join(['\n'.join(generate_graphml(graph)) for graph in graph_list]))
 
 	arch = import_arch(filepath_pair[1])
-
 	logging.info("Imported architecture:\n\t" + '\n\t'.join(','.join(cpu) for cpu in arch))
 
 	return (graph_list, arch)
