@@ -21,13 +21,15 @@ Runtime analysis
 
 # IMPORTS #############################################################################################################
 
-from log import colored_handler
-from solver import scheduler
-from builder import problem_builder
 import logging
 from pathlib import Path
 from argparse import ArgumentParser
+from time import process_time
+
 import timed
+from log import colored_handler
+from solver import scheduler
+from builder import problem_builder
 
 # FUNCTIONS ###########################################################################################################
 
@@ -81,7 +83,8 @@ def main() -> int:
 
 	solution = scheduler(problem)
 
-	logging.info("Finished. Total ellapsed time:" + str(timed.global_time) + "s.")
+	logging.info("Total working time: " + str(timed.global_time) + "s.")
+	logging.info("Total ellasped time: " + str(process_time()) + "s.")
 
 	return 0
 
