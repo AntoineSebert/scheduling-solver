@@ -24,7 +24,7 @@ def timed_callable(message: str) -> Optional[Any]:
 		The message to display before the running `Callable`.
 	callable : Callable
 		The `Callable` to run.
-	args
+	args, kwds
 		The arguments to pass to the `Callable`.
 
 	Returns
@@ -42,7 +42,7 @@ def timed_callable(message: str) -> Optional[Any]:
 			logging.info(message)
 
 			start = perf_counter()
-			result = callable(*args, **kwds)  # if args != None and kwargs == None
+			result = callable(*args, **kwds)
 			end = perf_counter()
 
 			total_time = end - start

@@ -38,7 +38,7 @@ def create_cli_parser() -> ArgumentParser:
 	Returns
 	-------
 	parser : ArgumentParser
-									An `ArgumentParser` object.
+		An `ArgumentParser` object holding the program's CLI.
 	"""
 
 	parser = ArgumentParser(
@@ -69,7 +69,7 @@ def main() -> int:
 	Returns
 	-------
 	int
-									Returns `0` if no error has been encountered, and an other value otherwise.
+		Returns `0` if no error has been encountered, and an other value otherwise.
 	"""
 
 	args = create_cli_parser().parse_args()

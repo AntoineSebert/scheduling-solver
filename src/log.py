@@ -5,7 +5,7 @@
 
 import logging
 from logging import Handler
-from typing import NoReturn
+from typing import NoReturn, TypeVar
 
 # CLASSES #############################################################################################################
 
@@ -20,14 +20,13 @@ class Singleton(type):
 
 	Methods
 	-------
-	emit(cls, *args, **kwargs)
+	__call__(cls, *args, **kwargs)
 		Creates the instance if it does not yet exists and returns it.
 	"""
 
-	# Holds classes as keys and single class instances of all subclasses as values.
 	_instances = {}
 
-	def __call__(cls, *args, **kwargs):
+	def __call__(cls, *args, **kwargs) -> TypeVar('T'):
 		"""Called when the instance is "called" as a function; if this method is defined, `x(arg1, arg2, ...)`
 		is a shorthand for `x.__call__(arg1, arg2, ...)`.
 
@@ -42,12 +41,13 @@ class Singleton(type):
 
 		Returns
 		-------
-		Singleton
+		TypeVar('T')
 			The single instance of the caller class.
 		"""
 
 		if cls not in cls._instances:
 			cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+
 		return cls._instances[cls]
 
 
@@ -60,7 +60,7 @@ class colored_handler(Handler, metaclass=Singleton):
 		Holds logging level names as keys and colors as values.
 		(default is { logging.CRITICAL: '\033[91m', logging.ERROR: '\033[91m', logging.WARNING: '\033[93m',
 		logging.INFO: '\033[94m', logging.DEBUG: '\033[92m', })
-	_styles : Dict[int, str]
+	_styles : Dict[str, str]
 		Holds strings representing styles as keys and styles as values.
 		(default is { "bold": '\033[1m', "italic": '\033[3m', "underline": '\033[4m', })
 	_reset : str
@@ -72,11 +72,12 @@ class colored_handler(Handler, metaclass=Singleton):
 
 	Methods
 	-------
+	__init__(self, verbose: bool = False)
+		Initializes the
 	emit(record)
 		Formats and prints a `LoggerRecord` parameter, depending on the verbosity level.
 	"""
 
-	# Holds logging level names as keys and colors as values.
 	_colors = {
 		logging.CRITICAL: '\033[91m',
 		logging.ERROR: '\033[91m',
@@ -84,20 +85,16 @@ class colored_handler(Handler, metaclass=Singleton):
 		logging.INFO: '\033[94m',
 		logging.DEBUG: '\033[92m',
 	}
-	# Holds strings representing styles as keys and styles as values.
 	_styles = {
 		"bold": '\033[1m',
 		"italic": '\033[3m',
 		"underline": '\033[4m',
 	}
-	# Reset color and style formatting.
 	_reset = '\033[0m'
-	# Verbosity.
 	_verbose = False
-	# Holds logging level values as keys and `Formatter` as values.
 	_formatters = dict()
 
-	def __init__(self, verbose: bool):
+	def __init__(self, verbose: bool = False) -> NoReturn:
 		"""Called after the instance has been created (by `__new__()`), but before it is returned to the caller.
 		The arguments are those passed to the class constructor expression.
 		If a base class has an `__init__()` method, the derived class’s `__init__()` method, if any,
@@ -107,12 +104,7 @@ class colored_handler(Handler, metaclass=Singleton):
 		Parameters
 		----------
 		verbose : bool
-			Toggle the verbosity.
-
-		Returns
-		-------
-		colored_handler
-			The single instance of the class.
+			Toggle the verbosity (default: False).
 		"""
 
 		Handler.__init__(self)
@@ -130,9 +122,10 @@ class colored_handler(Handler, metaclass=Singleton):
 
 		Parameters
 		----------
-		verbosity : bool
-			Verbosity. If set to `False`, log levels under `ERROR` are not printed.
-
+		record : logging.LogRecord
+			A record to format and print.
 		"""
+
+		if __class__._verbose or 30 < record.levelno:
 		if self._verbose or 30 < record.levelno:
 			print(self._formatters[record.levelno].format(record))

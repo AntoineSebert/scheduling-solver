@@ -3,7 +3,7 @@
 
 # IMPORTS #############################################################################################################
 
-from typing import List, Dict
+from typing import NoReturn, Iterable
 from concurrent.futures import ThreadPoolExecutor
 
 from networkx import DiGraph
@@ -16,39 +16,23 @@ from rate_monotonic import is_schedulable
 # FUNCTIONS ###########################################################################################################
 
 
-def is_equitable(graph: DiGraph, arch: List[int]) -> bool:
-	"""Test whether an equitable coloration of the graph is possible or not.
+def chain_stress(graph: DiGraph) -> float:
+	"""Computes the stress ratio for a graph.
 
 	Parameters
 	----------
 	graph : DiGraph
-		The directed oriented graph imported from the *.tsk* file.
-	arch : List[int]
-		The processor architecture imported from the *.cfg* file.
+		An oriented task graph.
 
 	Returns
 	-------
-	bool
-		Returns `True` if an equitable coloration is possible, and `False` otherwise.
-	"""
-	print(graph.degree(graph.nodes["1"]))
-	return max([graph.degree(node) for node in graph.nodes]) <= sum(arch)
+	float
+		The stress level for the graph.
 
-
-@timed_callable("Generating schedulable colorations...")
-def generate_colorations(problem: Problem) -> Dict[str, Dict[object, int]]:
-	"""Generate a graph coloration with an equitable strategy if possible,
-	or potential graph colorations with greedy strategies.
-
-	Parameters
-	----------
-	problem: Problem
-
-	Returns
-	-------
-	Dict[Dict[object, int]]
-		A dictionary containing pairs of strategy names and possible graph colorations,
-		each coloration being a dictionary containing pairs of nodes and colors.
+	Raises
+	------
+	NetworkXNotImplemented
+		If the chain budget is shorter than the scheduled tasks duration.
 	"""
 
 	if is_equitable(graph, arch):
@@ -74,22 +58,14 @@ def generate_colorations(problem: Problem) -> Dict[str, Dict[object, int]]:
 			else:
 				strategies.remove(strategy_name)
 
-		return strategies
-
-def validate_colorations(graph: DiGraph, colorations: Dict[str, Dict[object, int]]) -> Dict[str, Dict[object, int]]:
-	"""Return a list of colorations expurged from the non-schedulable colorations.
+@timed_callable("Generating a coloration for the problem...")
+def color_graphs(problem: Problem) -> NoReturn:
+	"""Color the graphs within the problem.
 
 	Parameters
 	----------
-	graph : DiGraph
-		The directed oriented graph imported from the *.tsk* file.
-	colorations : Dict[str, Dict[object, int]]
-		The colorations list to validate.
-
-	Returns
-	-------
-	Dict[str, Dict[object, int]]
-		A dictionary containing pairs of strings and schedulable graph colorations.
+	problem : Problem
+		The problem from which statement.
 	"""
 
 	valid_colorations = dict()
@@ -102,28 +78,18 @@ def validate_colorations(graph: DiGraph, colorations: Dict[str, Dict[object, int
 	return valid_colorations
 
 
-def color_graph(graph: DiGraph, coloration: Dict[object, int]):
-	"""Color a graph using the given coloration.
+	# for each no_processor(node) or no_core(node)
+	# assign top queue to node (same processor)
 
-	Parameters
-	----------
-	graph : DiGraph
-		A directed oriented graph to color.
-	coloration : Dict[object, int]
-		The coloration to be applied to the graph.
-	"""
 
-	for node in coloration:
 		graph.nodes[node]['color'] = coloration[node]
-
-
 def theoretical_scheduling_time(graph: DiGraph) -> int:
 	"""Computes the theoretical scheduling time of a graph.
 
 	Parameters
 	----------
 	graph : DiGraph
-		A directed oriented graph.
+		An oriented task graph.
 
 	Returns
 	-------
@@ -135,13 +101,13 @@ def theoretical_scheduling_time(graph: DiGraph) -> int:
 
 
 @timed_callable("Computing shortest theoretical scheduling time...")
-def shortest_theoretical_scheduling(graph_list: List[DiGraph]) -> int:
+def shortest_theoretical_scheduling(graphs: Iterable[DiGraph]) -> int:
 	"""Computes the shortest theoretical scheduling time from the longest scheduling path of all graphs.
 
 	Parameters
 	----------
-	graph_list: List[DiGraph]
-		The list of directed oriented graph imported from the `Problem`.
+	graphs: Iterable[DiGraph]
+		An iterable of directed oriented graph imported from the `Problem`.
 
 	Returns
 	-------
@@ -155,24 +121,40 @@ def shortest_theoretical_scheduling(graph_list: List[DiGraph]) -> int:
 	return min([future.result() for future in futures])
 
 
-	"""
-	for node in coloration:
-		G.nodes[node]['color'] = coloration[node]
+def scheduler(problem: Problem):
+	"""Generates a solution for the problem.
+
+	Parameters
+	----------
+	problem : Problem
+		A `Problem` from the problem builder.
+
+	Returns
+	-------
+	Optional[Solution]
+		A solution if there is one, or `None` otherwise.
 	"""
 
-	# display
+	logging.info(
+		"Theoretical shortest scheduling time (in microseconds):\t" + str(shortest_theoretical_scheduling(problem[0]))
+	)
+
+	coloration = color_graphs(problem)
+
+	"""
+	logging.info(
+		"Colorations found:\n\t" + '\n\t'.join(coloration for coloration in colorations)
+	)
+	"""
 	"""
 	nx.draw_planar(G)
 	plt.show()
 	draw_console(G)
 	"""
-
+	"""
 	# validate it
 	print("Validating the solution...")
-	# for each cpu for each core if is_schedulable() == False: raise NotSchedulable
-	# check if https://networkx.github.io/documentation/stable/reference/algorithms/generated/networkx.algorithms.dag.dag_longest_path.html shorter than deadline
 
 	# draw it
 	# https://networkx.github.io/documentation/stable/reference/drawing.html#module-networkx.drawing.nx_pylab
-
-	print("Finished")
+	"""

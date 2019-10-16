@@ -5,7 +5,7 @@
 
 import logging
 from pathlib import Path
-from typing import List, Tuple, Dict, NoReturn
+from typing import List, Tuple, NoReturn, Mapping
 import xml.etree.ElementTree as et
 from xml.etree.ElementTree import Element, SubElement, tostring
 from xml.dom.minidom import parseString
@@ -32,8 +32,8 @@ def import_arch(filepath: Path) -> Architecture:
 	Returns
 	-------
 	Architecture
-		A `List`, each entry being a CPU, containing `List`s, each entry being a core, of integers,
-		each integer being the `MacroTick` of the core.
+		A list, each entry being a CPU, containing lists of integers,
+		each integer being the `MacroTick` of a core.
 		Basically we have : MacroTick = Architecture[cpu[core]].
 	"""
 
@@ -44,15 +44,15 @@ def import_arch(filepath: Path) -> Architecture:
 	]]
 
 
-def insert_node_keys(graphml: Element, attributes: Dict[str, str]) -> NoReturn:
+def insert_node_keys(graphml: Element, attributes: Mapping[str, str]) -> NoReturn:
 	"""Add the <key> tags to a <graphml> tag from a dict of <node> attributes.
 
 	Parameters
 	----------
 	graphml : Element
 		A <graphml> root tag.
-	attributes : Dict[str, str]
-		The attribute to insert into `graphml` as <key> tags.
+	attributes : Mapping[str, str]
+		A dict of attributes to insert into `graphml` as <key> tags.
 	"""
 
 	for attribute, value in attributes.items():
@@ -70,15 +70,15 @@ def insert_node_keys(graphml: Element, attributes: Dict[str, str]) -> NoReturn:
 				default.text = "-1" if attribute == "MaxJitter" or attribute == "CoreId" else "0"
 
 
-def insert_chain_keys(graphml: Element, attributes: Dict[str, str]) -> NoReturn:
+def insert_chain_keys(graphml: Element, attributes: Mapping[str, str]) -> NoReturn:
 	"""Add the <key> tags to a <graph> from a dict of <chain> attributes.
 
 	Parameters
 	----------
 	graphml : Element
 		A <graphml> root tag.
-	attributes : Dict[str, str]
-		The attribute to insert into `graphml` as <key> tags.
+	attributes : Mapping[str, str]
+		A dict of attributes to insert into `graphml` as <key> tags.
 	"""
 
 	for attribute, value in attributes.items():
@@ -103,7 +103,7 @@ def import_graph(filepath: Path) -> List[str]:
 	Parameters
 	----------
 	filepath : Path
-		The `Path` to the *.tsk* file describing the task graph.
+		A `Path` to a *.tsk* file describing the task graph.
 
 	Returns
 	-------
@@ -174,12 +174,12 @@ def import_files_from_folder(folder_path: Path) -> Tuple[Path, Path]:
 	Parameters
 	----------
 	folder_path : Path
-		The `Path` from which import the `*.tsk` and `*.cfg` files.
+		A `Path` from which import the `*.tsk` and `*.cfg` files.
 		Only the first encountered file of each type is taken, all the others are ignored.
 
 	Returns
 	-------
-	(Path, Path)
+	Tuple[Path, Path]
 		A pair of filepaths pointing to the `*.tsk` and `*.cfg` files.
 
 	Raises
@@ -206,13 +206,13 @@ def problem_builder(folder_path: Path) -> Problem:
 	Parameters
 	----------
 	folder_path : Path
-		The `Path` from which import the `*.tsk` and `*.cfg` files.
+		A `Path` from which import the `*.tsk` and `*.cfg` files.
 		Only the first encountered file of each type is taken, all the others are ignored.
 
 	Returns
 	-------
 	Problem
-		A par containing a `DiGraph` and an `Architecture` build from the files.
+		A pair containing a `DiGraph` and an `Architecture` build from the files.
 
 	Raises
 	------
