@@ -35,28 +35,12 @@ def chain_stress(graph: DiGraph) -> float:
 		If the chain budget is shorter than the scheduled tasks duration.
 	"""
 
-	if is_equitable(graph, arch):
-		return [equitable_color(graph, sum(arch))]
-	else:
-		"""Dictionary holding strategy names as keys and support for interchange as a boolean value."""
-		strategies = {
-			'largest_first': True,
-			'random_sequential': True,
-			#'smallest_last': True, # unstable for some reason
-			'independent_set': False,
-			'DSATUR': False
-		}
+	assigned_tasks_duration = sum([node[1]["wcet"] for node in graph.nodes(data=True) if node[1]["coreid"] != -1])
 
-		for strategy_name, interchange in strategies.items():
-			coloration = greedy_color(graph, strategy_name, interchange)
-			if 0 < len(coloration):
-				processes_by_core = {}
-				for key, value in sorted(greedy_color(graph, strategy_name, interchange).items()):
-					processes_by_core.setdefault(value, []).append(key)
+	if graph.graph["budget"] < assigned_tasks_duration:
+		raise NotImplementedError("The Chain duration is shorter than the total tasks duration")
 
-				strategies[strategy_name] = processes_by_core
-			else:
-				strategies.remove(strategy_name)
+	return (graph.graph["budget"] - assigned_tasks_duration) / sum([node[1]["wcet"] for node in graph.nodes(data=True) if node[1]["coreid"] == -1])
 
 @timed_callable("Generating a coloration for the problem...")
 def color_graphs(problem: Problem) -> NoReturn:
@@ -115,8 +99,8 @@ def shortest_theoretical_scheduling(graphs: Iterable[DiGraph]) -> int:
 		The theoretical shortest scheduling time.
 	"""
 
-	with ThreadPoolExecutor(max_workers=len(graph_list)) as executor:
-		futures = [executor.submit(theoretical_scheduling_time, graph) for graph in graph_list]
+	with ThreadPoolExecutor(max_workers=len(graphs)) as executor:
+		futures = [executor.submit(theoretical_scheduling_time, graph) for graph in graphs]
 
 	return min([future.result() for future in futures])
 
@@ -158,3 +142,4 @@ def scheduler(problem: Problem):
 	# draw it
 	# https://networkx.github.io/documentation/stable/reference/drawing.html#module-networkx.drawing.nx_pylab
 	"""
+	return object
