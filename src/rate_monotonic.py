@@ -5,26 +5,42 @@
 
 from fractions import Fraction
 from typing import Iterable, Callable
-from itertools import accumulate
 
 from networkx import nodes
 
 # FUNCTIONS ###########################################################################################################
 
-"""Determine the utilization load carried by an iterable of nodes.
+"""Determine the utilization ratio for a process.
 
 Parameters
 ----------
-processes : Iterable[nodes]
-	An iterable of nodes. The nodes must have "wcet" and "period" attributes.
+node : nodes
+	A node, that must have "wcet" and "period" attributes.
 
 Returns
 -------
 float
-	The processor utilization, computed from the periods and WCETs of all processes.
+	The processor utilizationfor the process.
 """
-utilization: Callable[[Iterable[nodes]], float] = lambda processes:\
-	accumulate(processes, lambda x: Fraction(x["wcet"], x["period"]), 0)
+process_ratio: Callable[[nodes], Fraction] = lambda node: Fraction(node[1]["wcet"], node[1]["period"])
+
+
+def utilization(processes: Iterable[nodes]) -> float:
+	"""Determine the utilization load carried by an iterable of nodes.
+
+	Parameters
+	----------
+	processes : Iterable[nodes]
+		An iterable of nodes. The nodes must have "wcet" and "period" attributes.
+
+	Returns
+	-------
+	float
+		The processor utilization, computed from the periods and WCETs of all processes.
+	"""
+
+	return sum([process_ratio(node) for node in processes], 0.0) if processes is not None else 0.0
+
 
 """Determine the sufficient condition for schedulability of a processor or core.
 
@@ -39,6 +55,7 @@ float
 	The sufficient utilization rate for a count of processes to be schedulable.
 """
 sufficient_condition: Callable[[int], float] = lambda count: count * (pow(2, 1 / count) - 1)
+
 
 """Determines whether an iterable of nodes is schedulable or not.
 
