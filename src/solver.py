@@ -248,27 +248,12 @@ def scheduler(problem: Problem):
 		A solution if there is one, or `None` otherwise.
 	"""
 
-	logging.info(
-		"Theoretical shortest scheduling time (in microseconds):\t" + str(shortest_theoretical_scheduling(problem[0]))
-	)
+	logging.info("Theoretical shortest scheduling time:\t" + str(shortest_theoretical_scheduling(problem[0])) + "ms.")
 
 	coloration = color_graphs(problem)
+	logging.info("Coloration found:\n\t" + '\n\t'.join(str(node) for node in coloration))
 
-	"""
-	logging.info(
-		"Colorations found:\n\t" + '\n\t'.join(coloration for coloration in colorations)
-	)
-	"""
-	"""
-	nx.draw_planar(G)
-	plt.show()
-	draw_console(G)
-	"""
-	"""
-	# validate it
-	print("Validating the solution...")
+	solution = generate_solution(problem)
+	logging.info("Solution found:\n\t" + str(solution))
 
-	# draw it
-	# https://networkx.github.io/documentation/stable/reference/drawing.html#module-networkx.drawing.nx_pylab
-	"""
-	return object
+	return solution
