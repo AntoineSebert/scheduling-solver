@@ -3,15 +3,17 @@
 
 # IMPORTS #############################################################################################################
 
-from typing import NoReturn, Iterable
+from typing import NoReturn, Iterable, List, Tuple, Optional
 from concurrent.futures import ThreadPoolExecutor
+from queue import PriorityQueue, Empty
+from weakref import ref
 
-from networkx import DiGraph
+from networkx import DiGraph, nodes
 
 import logging
 from timed import timed_callable
-from type_aliases import Architecture, Problem
-from rate_monotonic import is_schedulable
+from type_aliases import Problem, Solution
+from rate_monotonic import utilization
 
 # FUNCTIONS ###########################################################################################################
 
@@ -40,7 +42,115 @@ def chain_stress(graph: DiGraph) -> float:
 	if graph.graph["budget"] < assigned_tasks_duration:
 		raise NotImplementedError("The Chain duration is shorter than the total tasks duration")
 
-	return (graph.graph["budget"] - assigned_tasks_duration) / sum([node[1]["wcet"] for node in graph.nodes(data=True) if node[1]["coreid"] == -1])
+	return (graph.graph["budget"] - assigned_tasks_duration)\
+		/ sum([node[1]["wcet"] for node in graph.nodes(data=True) if node[1]["coreid"] == -1])
+
+
+def get_processes_for_core(graphs: Iterable[DiGraph], core: Tuple[int, int]) -> Optional[List[nodes]]:
+	"""Returns the list of processes scheduled on a core.
+
+	Parameters
+	----------
+	graphs : Iterable[DiGraph]
+		A list of graphs in which perform the search.
+	core : Tuple[int, int]
+		A core to look for in the processes' attributes. The tuple member is the cpu, the second the core itself.
+
+	Returns
+	-------
+	Optional[List[nodes]]
+		A list of processes if there are any, or `None` otherwise.
+	"""
+
+	with ThreadPoolExecutor(max_workers=len(graphs)) as executor:
+		futures = [executor.submit(
+			lambda graph, core: [
+				node for node in graph.nodes(data=True) if node[1]["cpuid"] == core[0] and node[1]["coreid"] == core[1]
+			],
+			graph, core
+		) for graph in graphs]
+
+	processes = [node for future in futures if 0 < len(future.result()) for node in future.result()]
+
+	return processes if 0 < len(processes) else None
+
+
+def get_cpu_utilization_tuple(graphs: Iterable[DiGraph], cpu: List[int], cpu_index: int) -> Tuple[float, PriorityQueue]:
+	"""Get the global utilization carried by the processes scheduled on a cpu, and by core.
+
+	Parameters
+	----------
+	graphs : Iterable[DiGraph]
+		A list of graphs in which perform the search.
+	cpu : List[int]
+		A CPU from the architecture.
+	cpu_index : int
+		A CPU index within the architecture.
+
+	Returns
+	-------
+	Tuple[float, PriorityQueue]
+		A tuple containing the CPU utilization, and a priority queue of tuples,
+		containin the utilization by core and the core id.
+	"""
+
+	ratio_pqueue = PriorityQueue(maxsize=len(cpu))
+	u_sum = 0.0
+
+	for coreid, core_utilization in enumerate([
+		utilization(get_processes_for_core(graphs, (cpu_index, coreid))) for coreid, core in enumerate(cpu)
+	]):
+		u_sum += core_utilization
+		ratio_pqueue.put((core_utilization, coreid))
+
+	return (u_sum, ratio_pqueue)
+
+
+def create_chain_pqueue(graphs: Iterable[DiGraph]) -> PriorityQueue:
+	"""Creates a priority queue for all chains in the problem, depending on the chain stress.
+
+	Parameters
+	----------
+	graphs : Iterable[DiGraph]
+		A list of chains of processes.
+
+	Returns
+	-------
+	chain_pqueue : PriorityQueue
+		A priority queue containing tuples of chain stress and reference to the chain.
+	"""
+
+	chain_pqueue = PriorityQueue(maxsize=len(graphs))
+	with ThreadPoolExecutor(max_workers=len(graphs)) as executor:
+		futures = [executor.submit(chain_stress, graph) for graph in graphs]
+		for i, future in enumerate(futures):
+			chain_pqueue.put((future.result(), ref(graphs[i])))
+
+	return chain_pqueue
+
+
+def create_utilization_table(problem: Problem) -> List[Tuple[float, PriorityQueue]]:
+	"""Create an utilization table from a problem statement.
+
+	Parameters
+	----------
+	problem : Problem
+		A problem statement.
+
+	Returns
+	-------
+	utilization_table : List[Tuple[float, PriorityQueue]]
+		A list of tuples, each tuple representing a CPU, containing a pair of float, being the CPU utilization,
+		and a priority queue of floats, being the utilization
+	"""
+
+	utilization_table = list()
+	with ThreadPoolExecutor(max_workers=len(problem[1])) as executor:
+		futures = [executor.submit(get_cpu_utilization_tuple, problem[0], cpu, i) for i, cpu in enumerate(problem[1])]
+		utilization_table = [future.result() for future in futures]
+
+	return utilization_table
+
 
 @timed_callable("Generating a coloration for the problem...")
 def color_graphs(problem: Problem) -> NoReturn:
@@ -49,24 +159,43 @@ def color_graphs(problem: Problem) -> NoReturn:
 	Parameters
 	----------
 	problem : Problem
-		The problem from which statement.
+		The problem to work on.
+
+	Returns
+	-------
+	List[Tuple[int, Tuple[int, int]]]
+		A list of tuples, each tuple representing a task id whithin its chain, and a tuple of cpu id and core id.
 	"""
 
-	valid_colorations = dict()
+	chain_pq = create_chain_pqueue(problem[0])
+	utilization_table = create_utilization_table(problem)
 
-	for strategy_name, coloration in colorations.items():
-		for core, process_list in coloration.items():
-			if not is_schedulable([graph.nodes(data=True)[process] for process in process_list]):
-				valid_colorations.update({strategy_name: coloration})
+	# while chain_pq not empty
+	try:
+		# get first item of chain_pq
+		while chain := chain_pq.get_nowait():
+			# get first item of process list without core
+			for node in chain[1]().nodes(data=True):
+				if node[1].get("coreid") == -1:
+					# get first core from utilization_table with the same processor
+					try:
+						# add process to it
+						core = utilization_table[node[1].get("cpuid")][1].get_nowait()
+						node[1]["coreid"] = core[1]
+						utilization_table[node[1].get("cpuid")][1].put_nowait(core)
+						# reschedule cpu
+						utilization_table[node[1].get("cpuid")] = get_cpu_utilization_tuple(problem[0], [node[1] for node in utilization_table[node[1].get("cpuid")][1].queue], node[1].get("cpuid"))
+					except Empty:
+						pass
+			# if chain_pq not entirely scheduled, put it back in chain_pq
+			if 0 < len([node for node in chain[1]().nodes(data=True) if node[1].get("coreid") == -1]):
+				chain_pq.put_nowait(chain)
+	except Empty:
+		pass
 
-	return valid_colorations
+	return [(node[0], (node[1].get("cpuid"), node[1].get("coreid")))for chain in problem[0] for node in chain.nodes(data=True)]
 
 
-	# for each no_processor(node) or no_core(node)
-	# assign top queue to node (same processor)
-
-
-		graph.nodes[node]['color'] = coloration[node]
 def theoretical_scheduling_time(graph: DiGraph) -> int:
 	"""Computes the theoretical scheduling time of a graph.
 
