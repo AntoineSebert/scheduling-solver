@@ -228,7 +228,7 @@ def problem_builder(folder_path: Path) -> Problem:
 			raise NetworkXNotImplemented("The graphs must be acyclic.")
 	logging.info("Imported graphs:\n" + '\n'.join(['\n'.join(generate_graphml(graph)) for graph in graph_list]))
 
-	arch = import_arch(filepath_pair[1])
-	logging.info("Imported architecture:\n\t" + '\n\t'.join(','.join(cpu) for cpu in arch))
+	architecture = import_arch(filepath_pair[1])
+	logging.info("Imported architecture:\n\t" + '\n\t'.join(','.join(cpu) for cpu in architecture))
 
-	return (graph_list, arch)
+	return Problem(graphs=graph_list, arch=architecture)

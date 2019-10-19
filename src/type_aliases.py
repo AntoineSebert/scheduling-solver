@@ -13,5 +13,5 @@ Architecture = List[List[int]]
 
 Slice = namedtuple('Slice', ['id', 'start', 'end'])
 
-Problem = Tuple[List[DiGraph], Architecture]
+Problem = namedtuple("Problem", ["graphs", "arch"]) # NamedTuple[Iterable[DiGraph], Architecture]
 Solution = List[List[List[Slice]]]

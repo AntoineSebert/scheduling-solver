@@ -145,8 +145,8 @@ def create_utilization_table(problem: Problem) -> List[Tuple[float, PriorityQueu
 	"""
 
 	utilization_table = list()
-	with ThreadPoolExecutor(max_workers=len(problem[1])) as executor:
-		futures = [executor.submit(get_cpu_utilization_tuple, problem[0], cpu, i) for i, cpu in enumerate(problem[1])]
+	with ThreadPoolExecutor(max_workers=len(problem.arch)) as executor:
+		futures = [executor.submit(get_cpu_utilization_tuple, problem.graphs, cpu, i) for i, cpu in enumerate(problem.arch)]
 		utilization_table = [future.result() for future in futures]
 
 	return utilization_table
@@ -167,7 +167,7 @@ def color_graphs(problem: Problem) -> NoReturn:
 		A list of tuples, each tuple representing a task id whithin its chain, and a tuple of cpu id and core id.
 	"""
 
-	chain_pq = create_chain_pqueue(problem[0])
+	chain_pq = create_chain_pqueue(problem.graphs)
 	utilization_table = create_utilization_table(problem)
 
 	# while chain_pq not empty
@@ -184,7 +184,10 @@ def color_graphs(problem: Problem) -> NoReturn:
 						node[1]["coreid"] = core[1]
 						utilization_table[node[1].get("cpuid")][1].put_nowait(core)
 						# reschedule cpu
-						utilization_table[node[1].get("cpuid")] = get_cpu_utilization_tuple(problem[0], [node[1] for node in utilization_table[node[1].get("cpuid")][1].queue], node[1].get("cpuid"))
+						utilization_table[node[1].get("cpuid")] = get_cpu_utilization_tuple(
+							problem.graphs,
+							[node[1] for node in utilization_table[node[1].get("cpuid")][1].queue], node[1].get("cpuid")
+						)
 					except Empty:
 						pass
 			# if chain_pq not entirely scheduled, put it back in chain_pq
@@ -193,7 +196,10 @@ def color_graphs(problem: Problem) -> NoReturn:
 	except Empty:
 		pass
 
-	return [(node[0], (node[1].get("cpuid"), node[1].get("coreid")))for chain in problem[0] for node in chain.nodes(data=True)]
+	return [(node[0], (
+		node[1].get("cpuid"),
+		node[1].get("coreid")
+	)) for chain in problem.graphs for node in chain.nodes(data=True)]
 
 
 def theoretical_scheduling_time(graph: DiGraph) -> int:
@@ -248,7 +254,7 @@ def scheduler(problem: Problem):
 		A solution if there is one, or `None` otherwise.
 	"""
 
-	logging.info("Theoretical shortest scheduling time:\t" + str(shortest_theoretical_scheduling(problem[0])) + "ms.")
+	logging.info("Theoretical shortest scheduling time:\t" + str(shortest_theoretical_scheduling(problem.graphs)) + "ms.")
 
 	coloration = color_graphs(problem)
 	logging.info("Coloration found:\n\t" + '\n\t'.join(str(node) for node in coloration))
