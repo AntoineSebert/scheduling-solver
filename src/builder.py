@@ -81,15 +81,14 @@ def insert_chain_keys(graphml: Element, attributes: Mapping[str, str]) -> NoRetu
 	"""
 
 	for attribute, value in attributes.items():
+		key = SubElement(graphml, "key", {
+			"id": "d" + str(len(graphml)),
+			"for": "graph",
+			"attr.name": attribute.lower(),
+			"attr.type": "string" if attribute == "Name" else "int"
+		})
 
 		if attribute != "Name":
-			key = SubElement(graphml, "key", {
-				"id": "d" + str(len(graphml)),
-				"for": "graph",
-				"attr.name": attribute.lower(),
-				"attr.type": "string" if attribute == "Name" else "int"
-			})
-
 			default = SubElement(key, "default")
 			default.text = "0"
 
@@ -134,13 +133,12 @@ def import_graph(filepath: Path) -> List[str]:
 
 		# Add <data> tags for <graph> tag
 		for key, value in chain.attrib.items():
-			if key != "Name":
-				data = SubElement(
-					graph,
-					"data",
-					{"key": graph_list[-1].findall("key[@attr.name='" + key.lower() + "']")[0].get("id")}
-				)
-				data.text = value
+			data = SubElement(
+				graph,
+				"data",
+				{"key": graph_list[-1].findall("key[@attr.name='" + key.lower() + "']")[0].get("id")}
+			)
+			data.text = value
 
 		# Add <node> tags for <graph> tag
 		for i, runnable in enumerate(chain.iter("Runnable")):
