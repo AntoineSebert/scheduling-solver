@@ -280,7 +280,7 @@ def _generate_solution(problem: Problem) -> Solution:
 	# group graphs by desc priority level
 	for keyvalue, group in groupby(problem.graphs, key=lambda graph: graph.graph["priority"]):
 		# for each level
-		for i in sorted(list(group), key=lambda graph: len(graph)):
+		for i in reversed(sorted(list(group), key=lambda graph: len(graph))):
 			_schedule_graph(i, solution)
 
 	return solution
