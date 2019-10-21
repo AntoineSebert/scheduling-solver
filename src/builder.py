@@ -20,7 +20,7 @@ from timed import timed_callable
 
 
 @timed_callable("Generating architecture from the '.cfg' file...")
-def import_arch(filepath: Path) -> Architecture:
+def _import_arch(filepath: Path) -> Architecture:
 	"""Create the processor architecture from the configuration file, then returns it.
 
 	Parameters
@@ -43,7 +43,7 @@ def import_arch(filepath: Path) -> Architecture:
 	]]
 
 
-def insert_node_keys(graphml: Element, attributes: Mapping[str, str]) -> NoReturn:
+def _insert_node_keys(graphml: Element, attributes: Mapping[str, str]) -> NoReturn:
 	"""Add the <key> tags to a <graphml> tag from a dict of <node> attributes.
 
 	Parameters
@@ -68,7 +68,7 @@ def insert_node_keys(graphml: Element, attributes: Mapping[str, str]) -> NoRetur
 				default.text = "-1" if attribute == "MaxJitter" or attribute == "CoreId" else "0"
 
 
-def insert_chain_keys(graphml: Element, attributes: Mapping[str, str]) -> NoReturn:
+def _insert_chain_keys(graphml: Element, attributes: Mapping[str, str]) -> NoReturn:
 	"""Add the <key> tags to a <graph> from a dict of <chain> attributes.
 
 	Parameters
@@ -93,7 +93,7 @@ def insert_chain_keys(graphml: Element, attributes: Mapping[str, str]) -> NoRetu
 
 
 @timed_callable("Generating graph from  the '.tsk' file...")
-def import_graph(filepath: Path) -> List[str]:
+def _import_graph(filepath: Path) -> List[str]:
 	"""Imports data from the given file and converts it into GraphML graphs, then returns it.
 	One graph will be generated for each <Chain>.
 
@@ -121,8 +121,8 @@ def import_graph(filepath: Path) -> List[str]:
 		}))
 
 		# Add keys # TODO: transform into static elements
-		insert_chain_keys(graph_list[-1], graph_tree.find("Graph/Chain").attrib)
-		insert_node_keys(graph_list[-1], graph_tree.find("Graph/Node").attrib)
+		_insert_chain_keys(graph_list[-1], graph_tree.find("Graph/Chain").attrib)
+		_insert_node_keys(graph_list[-1], graph_tree.find("Graph/Node").attrib)
 
 		# Add <graph> tag
 		graph = SubElement(graph_list[-1], "graph", {
@@ -163,7 +163,7 @@ def import_graph(filepath: Path) -> List[str]:
 	return [tostring(graph) for graph in graph_list]
 
 
-@timed_callable("Gathering the required files...")
+def _import_files_from_folder(folder_path: Path) -> Tuple[Path, Path]:
 def import_files_from_folder(folder_path: Path) -> Tuple[Path, Path]:
 	"""Attempts to gather the required files in `folder_path`.
 
@@ -219,13 +219,13 @@ def problem_builder(folder_path: Path) -> Problem:
 	filepath_pair = import_files_from_folder(folder_path)
 	logging.info("Files found:\n\t" + filepath_pair[0].name + "\n\t" + filepath_pair[1].name)
 
-	graph_list = [DiGraph(parse_graphml(graph)) for graph in import_graph(filepath_pair[0])]
+		graph_list = [DiGraph(parse_graphml(graph)) for graph in _import_graph(filepath_pair[0])]
 	for graph in graph_list:
 		if not is_directed_acyclic_graph(graph):
 			raise NetworkXNotImplemented("The graphs must be acyclic.")
 	logging.info("Imported graphs:\n" + '\n'.join(['\n'.join(generate_graphml(graph)) for graph in graph_list]))
 
-	architecture = import_arch(filepath_pair[1])
+		architecture = _import_arch(filepath_pair[1])
 	logging.info("Imported architecture:\n\t" + '\n\t'.join(','.join(cpu) for cpu in architecture))
 
 	return Problem(graphs=graph_list, arch=architecture)

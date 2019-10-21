@@ -19,7 +19,7 @@ from rate_monotonic import utilization
 # FUNCTIONS ###########################################################################################################
 
 
-def chain_stress(graph: DiGraph) -> float:
+def _chain_stress(graph: DiGraph) -> float:
 	"""Computes the stress ratio for a graph.
 
 	Parameters
@@ -47,7 +47,7 @@ def chain_stress(graph: DiGraph) -> float:
 		/ sum([node[1]["wcet"] for node in graph.nodes(data=True) if node[1]["coreid"] == -1])
 
 
-def get_processes_for_core(graphs: Iterable[DiGraph], core: Tuple[int, int]) -> Optional[List[nodes]]:
+def _get_processes_for_core(graphs: Iterable[DiGraph], core: Tuple[int, int]) -> Optional[List[nodes]]:
 	"""Returns the list of processes scheduled on a core.
 
 	Parameters
@@ -76,7 +76,8 @@ def get_processes_for_core(graphs: Iterable[DiGraph], core: Tuple[int, int]) -> 
 	return processes if 0 < len(processes) else None
 
 
-def get_cpu_utilization_tuple(graphs: Iterable[DiGraph], cpu: List[int], cpu_index: int) -> Tuple[float, PriorityQueue]:
+def _get_cpu_utilization_tuple(graphs: Iterable[DiGraph], cpu: List[int], cpu_index: int)\
+	-> Tuple[float, PriorityQueue]:
 	"""Get the global utilization carried by the processes scheduled on a cpu, and by core.
 
 	Parameters
@@ -99,7 +100,7 @@ def get_cpu_utilization_tuple(graphs: Iterable[DiGraph], cpu: List[int], cpu_ind
 	u_sum = 0.0
 
 	for coreid, core_utilization in enumerate([
-		utilization(get_processes_for_core(graphs, (cpu_index, coreid))) for coreid, core in enumerate(cpu)
+		utilization(_get_processes_for_core(graphs, (cpu_index, coreid))) for coreid, core in enumerate(cpu)
 	]):
 		u_sum += core_utilization
 		ratio_pqueue.put((core_utilization, coreid))
@@ -107,7 +108,7 @@ def get_cpu_utilization_tuple(graphs: Iterable[DiGraph], cpu: List[int], cpu_ind
 	return (u_sum, ratio_pqueue)
 
 
-def create_chain_pqueue(graphs: Iterable[DiGraph]) -> PriorityQueue:
+def _create_chain_pqueue(graphs: Iterable[DiGraph]) -> PriorityQueue:
 	"""Creates a priority queue for all chains in the problem, depending on the chain stress.
 
 	Parameters
@@ -123,14 +124,14 @@ def create_chain_pqueue(graphs: Iterable[DiGraph]) -> PriorityQueue:
 
 	chain_pqueue = PriorityQueue(maxsize=len(graphs))
 	with ThreadPoolExecutor(max_workers=len(graphs)) as executor:
-		futures = [executor.submit(chain_stress, graph) for graph in graphs]
+		futures = [executor.submit(_chain_stress, graph) for graph in graphs]
 		for i, future in enumerate(futures):
 			chain_pqueue.put((future.result(), ref(graphs[i])))
 
 	return chain_pqueue
 
 
-def create_utilization_table(problem: Problem) -> List[Tuple[float, PriorityQueue]]:
+def _create_utilization_table(problem: Problem) -> List[Tuple[float, PriorityQueue]]:
 	"""Create an utilization table from a problem statement.
 
 	Parameters
@@ -147,14 +148,14 @@ def create_utilization_table(problem: Problem) -> List[Tuple[float, PriorityQueu
 
 	utilization_table = list()
 	with ThreadPoolExecutor(max_workers=len(problem.arch)) as executor:
-		futures = [executor.submit(get_cpu_utilization_tuple, problem.graphs, cpu, i) for i, cpu in enumerate(problem.arch)]
+		futures = [executor.submit(_get_cpu_utilization_tuple, problem.graphs, cpu, i) for i, cpu in enumerate(problem.arch)]
 		utilization_table = [future.result() for future in futures]
 
 	return utilization_table
 
 
 @timed_callable("Generating a coloration for the problem...")
-def color_graphs(problem: Problem) -> NoReturn:
+def _color_graphs(problem: Problem) -> NoReturn:
 	"""Color the graphs within the problem.
 
 	Parameters
@@ -168,8 +169,8 @@ def color_graphs(problem: Problem) -> NoReturn:
 		A list of tuples, each tuple representing a task id whithin its chain, and a tuple of cpu id and core id.
 	"""
 
-	chain_pq = create_chain_pqueue(problem.graphs)
-	utilization_table = create_utilization_table(problem)
+	chain_pq = _create_chain_pqueue(problem.graphs)
+	utilization_table = _create_utilization_table(problem)
 
 	# while chain_pq not empty
 	try:
@@ -184,7 +185,7 @@ def color_graphs(problem: Problem) -> NoReturn:
 					node[1]["coreid"] = core[1]
 					utilization_table[node[1].get("cpuid")][1].put_nowait(core)
 					# reschedule cpu
-					utilization_table[node[1].get("cpuid")] = get_cpu_utilization_tuple(
+					utilization_table[node[1].get("cpuid")] = _get_cpu_utilization_tuple(
 						problem.graphs,
 						[node[1] for node in utilization_table[node[1].get("cpuid")][1].queue], node[1].get("cpuid")
 					)
@@ -202,7 +203,7 @@ def color_graphs(problem: Problem) -> NoReturn:
 	)) for chain in problem.graphs for node in chain.nodes(data=True)]
 
 
-def theoretical_scheduling_time(graph: DiGraph) -> int:
+def _theoretical_scheduling_time(graph: DiGraph) -> int:
 	"""Computes the theoretical scheduling time of a graph.
 
 	Parameters
@@ -220,7 +221,7 @@ def theoretical_scheduling_time(graph: DiGraph) -> int:
 
 
 @timed_callable("Computing shortest theoretical scheduling time...")
-def shortest_theoretical_scheduling(graphs: Iterable[DiGraph]) -> int:
+def _shortest_theoretical_scheduling(graphs: Iterable[DiGraph]) -> int:
 	"""Computes the shortest theoretical scheduling time from the longest scheduling path of all graphs.
 
 	Parameters
@@ -235,12 +236,12 @@ def shortest_theoretical_scheduling(graphs: Iterable[DiGraph]) -> int:
 	"""
 
 	with ThreadPoolExecutor(max_workers=len(graphs)) as executor:
-		futures = [executor.submit(theoretical_scheduling_time, graph) for graph in graphs]
+		futures = [executor.submit(_theoretical_scheduling_time, graph) for graph in graphs]
 
 	return min([future.result() for future in futures])
 
 
-def schedule_graph(graph: DiGraph, solution: Solution) -> NoReturn:
+def _schedule_graph(graph: DiGraph, solution: Solution) -> NoReturn:
 	"""Schedules a graph into a solution.
 
 	Parameters
@@ -260,7 +261,7 @@ def schedule_graph(graph: DiGraph, solution: Solution) -> NoReturn:
 
 
 @timed_callable("Generating a solution from the coloration...")
-def generate_solution(problem: Problem) -> Solution:
+def _generate_solution(problem: Problem) -> Solution:
 	"""Creates and returns a solution from the relaxed problem.
 
 	Parameters
@@ -280,7 +281,7 @@ def generate_solution(problem: Problem) -> Solution:
 	for keyvalue, group in groupby(problem.graphs, key=lambda graph: graph.graph["priority"]):
 		# for each level
 		for i in sorted(list(group), key=lambda graph: len(graph)):
-			schedule_graph(i, solution)
+			_schedule_graph(i, solution)
 
 	return solution
 
@@ -317,12 +318,13 @@ def scheduler(problem: Problem):
 	"""
 
 	logging.info("Theoretical shortest scheduling time:\t" + str(shortest_theoretical_scheduling(problem.graphs)) + "ms.")
+		logging.info("Theoretical shortest scheduling time:\t" + str(_shortest_theoretical_scheduling(problem.graphs)) + "ms.")
 
-	coloration = color_graphs(problem)
+		coloration = _color_graphs(problem)
 	logging.info("Coloration found:\n\t" + '\n\t'.join(str(node) for node in coloration))
 
 	solution = generate_solution(problem)
 	logging.info("Solution found:\n\t" + str(solution))
-	logging.info("Hyperperiod duration:\t" + str(hyperperiod_duration(solution)))
+		logging.info("Hyperperiod duration:\t" + str(_hyperperiod_duration(solutions[-1])))
 
 	return solution

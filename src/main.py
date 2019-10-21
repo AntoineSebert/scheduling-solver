@@ -35,6 +35,7 @@ from builder import problem_builder
 
 
 def create_cli_parser() -> ArgumentParser:
+def _create_cli_parser() -> ArgumentParser:
 	"""Creates a CLI argument parser and returns it.
 
 	Returns
@@ -74,7 +75,7 @@ def main() -> int:
 		Returns `0` if no error has been encountered, and an other value otherwise.
 	"""
 
-	args = create_cli_parser().parse_args()
+	args = _create_cli_parser().parse_args()
 	logging.getLogger().addHandler(
 		colored_handler(verbose=False if args.verbose is None else True)
 	)
