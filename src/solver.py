@@ -7,12 +7,13 @@ from typing import NoReturn, Iterable, List, Tuple, Optional
 from concurrent.futures import ThreadPoolExecutor
 from queue import PriorityQueue, Empty
 from weakref import ref
+from itertools import groupby
 
 from networkx import DiGraph, nodes
 
 import logging
 from timed import timed_callable
-from type_aliases import Problem, Solution
+from type_aliases import Problem, Solution, Slice
 from rate_monotonic import utilization
 
 # FUNCTIONS ###########################################################################################################
@@ -173,7 +174,7 @@ def color_graphs(problem: Problem) -> NoReturn:
 	# while chain_pq not empty
 	try:
 		# get first item of chain_pq
-		while chain := chain_pq.get_nowait():
+		while (chain := chain_pq.get_nowait()):
 			# get first item of process list without core
 			for node in chain[1]().nodes(data=True):
 				if node[1].get("coreid") == -1:
@@ -240,6 +241,68 @@ def shortest_theoretical_scheduling(graphs: Iterable[DiGraph]) -> int:
 	return min([future.result() for future in futures])
 
 
+def schedule_graph(graph: DiGraph, solution: Solution) -> NoReturn:
+	"""Schedules a graph into a solution.
+
+	Parameters
+	----------
+	graph : DiGraph
+		A `DiGraph` to schedule.
+	solution: Solution
+		A `Problem` from the problem builder.
+	"""
+
+	# for each process in chain
+	for node in graph.nodes(data=True):
+		# assign time slice for each process & add it to corresponding core, at the end of the list
+		task_list = solution[node[1].get("cpuid")][node[1].get("coreid")]
+		start = 0 if len(task_list) == 0 else task_list[-1].end
+		task_list.append(Slice(task=graph.graph["name"] + '-' + str(node[0]), start=start, end=start + node[1].get("wcet")))
+
+
+@timed_callable("Generating a solution from the coloration...")
+def generate_solution(problem: Problem) -> Solution:
+	"""Creates and returns a solution from the relaxed problem.
+
+	Parameters
+	----------
+	problem : Problem
+		A `Problem` from the problem builder.
+
+	Returns
+	-------
+	Solution
+		A solution for the problem.
+	"""
+
+	solution = [[list() for item in core] for core in [cpu for cpu in problem.arch]]
+
+	# group graphs by desc priority level
+	for keyvalue, group in groupby(problem.graphs, key=lambda graph: graph.graph["priority"]):
+		# for each level
+		for i in sorted(list(group), key=lambda graph: len(graph)):
+			schedule_graph(i, solution)
+
+	return solution
+
+
+def hyperperiod_duration(solution: Solution) -> int:
+	"""Computes the hyperperiod length for a solution.
+
+	Parameters
+	----------
+	solution : Solution
+		A non-empty solution.
+
+	Returns
+	-------
+	int
+		The hyperperiod length for the solution.
+	"""
+
+	return max([core[-1].end for cpu in solution for core in cpu if 0 < len(core)])
+
+
 def scheduler(problem: Problem):
 	"""Generates a solution for the problem.
 
@@ -261,5 +324,6 @@ def scheduler(problem: Problem):
 
 	solution = generate_solution(problem)
 	logging.info("Solution found:\n\t" + str(solution))
+	logging.info("Hyperperiod duration:\t" + str(hyperperiod_duration(solution)))
 
 	return solution
