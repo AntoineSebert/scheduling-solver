@@ -176,21 +176,20 @@ def color_graphs(problem: Problem) -> NoReturn:
 		# get first item of chain_pq
 		while (chain := chain_pq.get_nowait()):
 			# get first item of process list without core
-			for node in chain[1]().nodes(data=True):
-				if node[1].get("coreid") == -1:
-					# get first core from utilization_table with the same processor
-					try:
-						# add process to it
-						core = utilization_table[node[1].get("cpuid")][1].get_nowait()
-						node[1]["coreid"] = core[1]
-						utilization_table[node[1].get("cpuid")][1].put_nowait(core)
-						# reschedule cpu
-						utilization_table[node[1].get("cpuid")] = get_cpu_utilization_tuple(
-							problem.graphs,
-							[node[1] for node in utilization_table[node[1].get("cpuid")][1].queue], node[1].get("cpuid")
-						)
-					except Empty:
-						pass
+			for node in filter(lambda node: node[1].get("coreid") == -1, chain[1]().nodes(data=True)):
+				# get first core from utilization_table with the same processor
+				try:
+					# add process to it
+					core = utilization_table[node[1].get("cpuid")][1].get_nowait()
+					node[1]["coreid"] = core[1]
+					utilization_table[node[1].get("cpuid")][1].put_nowait(core)
+					# reschedule cpu
+					utilization_table[node[1].get("cpuid")] = get_cpu_utilization_tuple(
+						problem.graphs,
+						[node[1] for node in utilization_table[node[1].get("cpuid")][1].queue], node[1].get("cpuid")
+					)
+				except Empty:
+					pass
 			# if chain_pq not entirely scheduled, put it back in chain_pq
 			if 0 < len([node for node in chain[1]().nodes(data=True) if node[1].get("coreid") == -1]):
 				chain_pq.put_nowait(chain)

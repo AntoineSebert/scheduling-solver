@@ -56,7 +56,6 @@ def insert_node_keys(graphml: Element, attributes: Mapping[str, str]) -> NoRetur
 
 	for attribute, value in attributes.items():
 		if attribute != "Id":
-
 			key = SubElement(graphml, "key", {
 				"id": "d" + str(len(graphml)),
 				"for": "node",
@@ -185,8 +184,8 @@ def import_files_from_folder(folder_path: Path) -> Tuple[Path, Path]:
 		If no `*.tsk` or `*.cfg` file can be found.
 	"""
 
-	tsk = [element for element in folder_path.glob('*.tsk') if element.is_file()][0]
-	cfg = [element for element in folder_path.glob('*.cfg') if element.is_file()][0]
+	tsk = next(filter(Path.is_file, folder_path.glob('*.tsk')))
+	cfg = next(filter(Path.is_file, folder_path.glob('*.cfg')))
 
 	if tsk is None or cfg is None:
 		raise FileNotFoundError("The folder " + folder_path.name + " include at least one *.tsk file and one *.cfg file.")
