@@ -3,8 +3,6 @@
 
 """
 Resources
-- https://algorithm-visualizer.org/greedy/job-scheduling-problem
-- https://visualgo.net/en/graphds
 - https://numpydoc.readthedocs.io/en/latest/format.html
 
 Design patterns

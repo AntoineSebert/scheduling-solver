@@ -39,7 +39,7 @@ def utilization(processes: Iterable[nodes]) -> float:
 		The processor utilization, computed from the periods and WCETs of all processes.
 	"""
 
-	return sum([process_ratio(node) for node in processes], 0.0) if processes is not None else 0.0
+	return sum([process_ratio(node) for node in processes]) if processes is not None else 0.0
 
 
 """Determine the sufficient condition for schedulability of a processor or core.

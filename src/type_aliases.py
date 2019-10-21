@@ -11,7 +11,6 @@ from networkx import DiGraph
 
 Architecture = List[List[int]]
 
-Slice = namedtuple('Slice', ['id', 'start', 'end'])
-
+Slice = namedtuple('Slice', ['task', 'start', 'end']) # pid = ref(node)
 Problem = namedtuple("Problem", ["graphs", "arch"]) # NamedTuple[Iterable[DiGraph], Architecture]
 Solution = List[List[List[Slice]]]
