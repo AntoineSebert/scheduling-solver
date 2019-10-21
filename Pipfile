@@ -4,11 +4,14 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+flake8 = "*"
+flake8-import-order = "*"
+flake8-bugbear = "*"
+flake8-docstrings = "*"
 
 [packages]
 networkx = "*"
 matplotlib = "*"
-flake8 = "*"
 
 [requires]
 python_version = "3.8"
