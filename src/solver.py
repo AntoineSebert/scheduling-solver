@@ -286,7 +286,7 @@ def _generate_solution(problem: Problem) -> Solution:
 	return solution
 
 
-def hyperperiod_duration(solution: Solution) -> int:
+def _hyperperiod_duration(solution: Solution) -> int:
 	"""Computes the hyperperiod length for a solution.
 
 	Parameters
@@ -303,7 +303,10 @@ def hyperperiod_duration(solution: Solution) -> int:
 	return max([core[-1].end for cpu in solution for core in cpu if 0 < len(core)])
 
 
-def scheduler(problem: Problem):
+# ENTRY POINT #########################################################################################################
+
+
+def scheduler(problems: Iterable[Problem]) -> List[Solution]:
 	"""Generates a solution for the problem.
 
 	Parameters
@@ -317,14 +320,16 @@ def scheduler(problem: Problem):
 		A solution if there is one, or `None` otherwise.
 	"""
 
-	logging.info("Theoretical shortest scheduling time:\t" + str(shortest_theoretical_scheduling(problem.graphs)) + "ms.")
+	solutions = list()
+
+	for problem in problems:
 		logging.info("Theoretical shortest scheduling time:\t" + str(_shortest_theoretical_scheduling(problem.graphs)) + "ms.")
 
 		coloration = _color_graphs(problem)
-	logging.info("Coloration found:\n\t" + '\n\t'.join(str(node) for node in coloration))
+		logging.info("Coloration found:\n\t" + '\n\t'.join(str(node) for node in coloration))
 
-	solution = generate_solution(problem)
-	logging.info("Solution found:\n\t" + str(solution))
+		solutions.append(_generate_solution(problem))
+		logging.info("Solution found:\n\t" + str(solutions[-1]))
 		logging.info("Hyperperiod duration:\t" + str(_hyperperiod_duration(solutions[-1])))
 
-	return solution
+	return solutions

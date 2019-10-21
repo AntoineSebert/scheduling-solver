@@ -21,20 +21,48 @@ Runtime analysis
 
 # IMPORTS #############################################################################################################
 
+
 import logging
 from pathlib import Path
 from argparse import ArgumentParser
 from time import process_time
+from typing import NoReturn
 
 import timed
 from log import colored_handler
 from solver import scheduler
 from builder import problem_builder
 
+
 # FUNCTIONS ###########################################################################################################
 
 
-def create_cli_parser() -> ArgumentParser:
+def _create_parser_arg_group(parser: ArgumentParser) -> NoReturn:
+	"""Adds a mutual exclusive group of arguments to the parser to handle dataset batch or single mode.
+
+	Parameters
+	----------
+	parser : ArgumentParser
+		An `ArgumentParser` object, that will be modified.
+	"""
+
+	group = parser.add_mutually_exclusive_group(required=True)
+	group.add_argument(
+		"--case",
+		type=Path,
+		help="Import problem description from FOLDER (only the first *.tsk and *.cfg files found are taken, \
+		all potential others are ignored).",
+		metavar='FOLDER'
+	)
+	group.add_argument(
+		"--collection",
+		type=Path,
+		help="Recursively import problem descriptions from FOLDER and/or subfolders\
+		(only the first *.tsk and *.cfg files found of each folder are taken, all potential others are ignored).",
+		metavar='FOLDER'
+	)
+
+
 def _create_cli_parser() -> ArgumentParser:
 	"""Creates a CLI argument parser and returns it.
 
@@ -50,15 +78,10 @@ def _create_cli_parser() -> ArgumentParser:
 		allow_abbrev=True,
 	)
 	parser.add_argument(
-		"folder",
-		type=Path,
-		help="Import problem description from FOLDER (only the first *.tsk and *.cfg files found are taken, \
-		all potential others are ignored).",
-	)
-	parser.add_argument(
 		"--verbose", action="store_const", const=True, help="Toggle program verbosity."
 	)
-	parser.add_argument("--version", action="version", version="%(prog)s 0.0.1")
+	parser.add_argument("--version", action="version", version="%(prog)s 0.1.0")
+	_create_parser_arg_group(parser)
 
 	return parser
 
@@ -80,9 +103,8 @@ def main() -> int:
 		colored_handler(verbose=False if args.verbose is None else True)
 	)
 
-	problem = problem_builder(args.folder)
-
-	solution = scheduler(problem)
+	problems = problem_builder(args.case, False) if args.case is not None else problem_builder(args.collection, True)
+	solutions = scheduler(problems)
 
 	logging.info("Total working time: " + str(timed.global_time) + "s.")
 	logging.info("Total ellasped time: " + str(process_time()) + "s.")
