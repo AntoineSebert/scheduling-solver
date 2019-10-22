@@ -230,7 +230,7 @@ def _get_filepath_pairs(folder_path: Path, recursive: bool = False) -> List[Tupl
 	return filepath_pairs
 
 
-def build_single_problem(filepath_pair: Tuple[Path, Path]) -> Problem:
+def _build_single_problem(filepath_pair: Tuple[Path, Path]) -> Problem:
 	"""Creates the solution for a problem.
 
 	Parameters
@@ -297,6 +297,6 @@ def problem_builder(folder_path: Path, recursive: bool) -> List[Problem]:
 	futures = list()
 
 	with ThreadPoolExecutor(max_workers=len(filepath_pairs)) as executor:
-		futures = [executor.submit(build_single_problem, filepath_pair) for filepath_pair in filepath_pairs]
+		futures = [executor.submit(_build_single_problem, filepath_pair) for filepath_pair in filepath_pairs]
 
 	return [future.result() for future in futures]
