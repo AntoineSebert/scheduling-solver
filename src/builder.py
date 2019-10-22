@@ -5,7 +5,7 @@
 
 import logging
 from pathlib import Path
-from typing import List, Tuple, NoReturn, Mapping, Iterable, Dict
+from typing import List, Tuple, Iterable, Dict
 import xml.etree.ElementTree as et
 from xml.etree.ElementTree import Element, SubElement, tostring, ElementTree
 from concurrent.futures import ThreadPoolExecutor
@@ -43,31 +43,6 @@ def _import_arch(filepath: Path) -> Architecture:
 	] for corelist in [
 		cpu for cpu in sorted(et.parse(filepath).findall("Cpu"), key=lambda e: e.get("Id"))
 	]]
-
-
-def _insert_node_keys(graphml: Element, attributes: Mapping[str, str]) -> NoReturn:
-	"""Add the <key> tags to a <graphml> tag from a dict of <node> attributes.
-
-	Parameters
-	----------
-	graphml : Element
-		A <graphml> root tag.
-	attributes : Mapping[str, str]
-		A dict of attributes to insert into `graphml` as <key> tags.
-	"""
-
-	for attribute, value in attributes.items():
-		if attribute != "Id":
-			key = SubElement(graphml, "key", {
-				"id": "d" + str(len(graphml)),
-				"for": "node",
-				"attr.name": attribute.lower(),
-				"attr.type": "string" if attribute == "Name" else "int"
-			})
-
-			if attribute != "Name":
-				default = SubElement(key, "default")
-				default.text = "-1" if attribute == "MaxJitter" or attribute == "CoreId" else "0"
 
 
 def _get_keys(tree: ElementTree, paths: Iterable[Tuple[str, str]]) -> Dict[str, str]:
@@ -231,10 +206,8 @@ def _get_filepath_pairs(folder_path: Path, recursive: bool = False) -> List[Tupl
 		A list of pair containg two paths, to a `*.tsk` and `*.cfg` file
 	"""
 
-	filepath_pairs = list()
-
 	try:
-		filepath_pairs.append(_import_files_from_folder(folder_path))
+		filepath_pairs = [_import_files_from_folder(folder_path)]
 	except StopIteration:
 		pass
 
@@ -311,8 +284,6 @@ def problem_builder(folder_path: Path, recursive: bool) -> List[Problem]:
 
 	if not filepath_pairs:
 		raise FileNotFoundError("No matching files found. At least one *.tsk file and one *.cfg file are necessary.")
-
-	futures = list()
 
 	with ThreadPoolExecutor(max_workers=len(filepath_pairs)) as executor:
 		futures = [executor.submit(_build_single_problem, filepath_pair) for filepath_pair in filepath_pairs]
