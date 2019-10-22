@@ -14,7 +14,7 @@ from networkx import DiGraph, nodes
 import logging
 from timed import timed_callable
 from datatypes import Problem, Solution, Slice, PrioritizedItem
-from rate_monotonic import utilization
+from rate_monotonic import workload
 
 
 # FUNCTIONS ###########################################################################################################
@@ -72,9 +72,7 @@ def _get_processes_for_core(graphs: Iterable[DiGraph], core: Tuple[int, int]) ->
 
 	with ThreadPoolExecutor(max_workers=len(graphs)) as executor:
 		futures = [executor.submit(
-			lambda graph, core: [
-				node for node in graph.nodes(data=True) if node[1].get("cpuid") == core[0] and node[1].get("coreid") == core[1]
-			],
+			lambda g, c: filter(lambda n: n[1].get("cpuid") == c[0] and n[1].get("coreid") == c[1], g.nodes(data=True)),
 			graph, core
 		) for graph in graphs]
 
@@ -83,9 +81,8 @@ def _get_processes_for_core(graphs: Iterable[DiGraph], core: Tuple[int, int]) ->
 	return processes if processes else None
 
 
-def _get_cpu_utilization_tuple(graphs: Iterable[DiGraph], cpu: List[int], cpu_index: int)\
-	-> Tuple[float, PriorityQueue]:
-	"""Get the global utilization carried by the processes scheduled on a cpu, and by core.
+def _get_cpuload(graphs: Iterable[DiGraph], cpu: List[int], cpuid: int) -> Tuple[float, PriorityQueue]:
+	"""Get the global workload carried by the processes scheduled on a cpu, and by core.
 
 	Parameters
 	----------
@@ -93,26 +90,26 @@ def _get_cpu_utilization_tuple(graphs: Iterable[DiGraph], cpu: List[int], cpu_in
 		A list of graphs in which perform the search.
 	cpu : List[int]
 		A CPU from the architecture.
-	cpu_index : int
+	cpuid : int
 		A CPU index within the architecture.
 
 	Returns
 	-------
 	Tuple[float, PriorityQueue]
-		A tuple containing the CPU utilization, and a priority queue of tuples,
-		containin the utilization by core and the core id.
+		A tuple containing the CPU workload, and a priority queue of tuples,
+		containing the workload by core and the core id.
 	"""
 
-	ratio_pqueue = PriorityQueue(maxsize=len(cpu))
+	ratios = PriorityQueue(maxsize=len(cpu))
 	u_sum = 0.0
 
-	for coreid, core_utilization in enumerate([
-		utilization(_get_processes_for_core(graphs, (cpu_index, coreid))) for coreid, core in enumerate(cpu)
-	]):
-		u_sum += core_utilization
-		ratio_pqueue.put((core_utilization, coreid))
+	for coreid, coreload in [
+		(coreid, workload(_get_processes_for_core(graphs, (cpuid, coreid)))) for coreid, core in enumerate(cpu)
+	]:
+		u_sum += coreload
+		ratios.put((coreload, coreid))
 
-	return (u_sum, ratio_pqueue)
+	return (u_sum, ratios)
 
 
 def _create_chain_pqueue(graphs: Iterable[DiGraph]) -> PriorityQueue:
@@ -131,15 +128,16 @@ def _create_chain_pqueue(graphs: Iterable[DiGraph]) -> PriorityQueue:
 
 	chain_pqueue = PriorityQueue(maxsize=len(graphs))
 	with ThreadPoolExecutor(max_workers=len(graphs)) as executor:
-		futures = [executor.submit(_chain_stress, graph) for graph in graphs]
-		for i, future in enumerate(futures):
-			chain_pqueue.put(PrioritizedItem(future.result(), ref(graphs[i])))
+		futures = {ref(graph): executor.submit(_chain_stress, graph) for graph in graphs}
+
+	for graph, future in futures.items():
+		chain_pqueue.put(PrioritizedItem(future.result(), graph))
 
 	return chain_pqueue
 
 
-def _create_utilization_table(problem: Problem) -> List[Tuple[float, PriorityQueue]]:
-	"""Create an utilization table from a problem statement.
+def _create_proc_workload(problem: Problem) -> List[Tuple[float, PriorityQueue]]:
+	"""Create a worload list from a problem statement.
 
 	Parameters
 	----------
@@ -148,17 +146,15 @@ def _create_utilization_table(problem: Problem) -> List[Tuple[float, PriorityQue
 
 	Returns
 	-------
-	utilization_table : List[Tuple[float, PriorityQueue]]
-		A list of tuples, each tuple representing a CPU, containing a pair of float, being the CPU utilization,
-		and a priority queue of floats, being the utilization
+	List[Tuple[float, PriorityQueue]]
+		A list of tuples, each tuple representing a CPU, containing a pair of float, being the CPU workload,
+		and a priority queue of floats, being the workload
 	"""
 
-	utilization_table = list()
 	with ThreadPoolExecutor(max_workers=len(problem.arch)) as executor:
-		futures = [executor.submit(_get_cpu_utilization_tuple, problem.graphs, cpu, i) for i, cpu in enumerate(problem.arch)]
-		utilization_table = [future.result() for future in futures]
+		futures = [executor.submit(_get_cpuload, problem.graphs, cpu, i) for i, cpu in enumerate(problem.arch)]
 
-	return utilization_table
+	return [future.result() for future in futures]
 
 
 @timed_callable("Generating a coloration for the problem...")
@@ -177,37 +173,39 @@ def _color_graphs(problem: Problem) -> NoReturn:
 	"""
 
 	chain_pq = _create_chain_pqueue(problem.graphs)
-	utilization_table = _create_utilization_table(problem)
+	proc_workload = _create_proc_workload(problem)
 
 	# while chain_pq not empty
-	try:
+	while not chain_pq.empty():
 		# get first item of chain_pq
-		while (chain := chain_pq.get_nowait()):
-			# get first item of process list without core
-			for node in filter(lambda node: node[1].get("coreid") == -1, chain.item().nodes(data=True)):
-				# get first core from utilization_table with the same processor
-				try:
-					# add process to it
-					core = utilization_table[node[1].get("cpuid")][1].get_nowait()
-					node[1].update({"coreid": core[1]})
-					utilization_table[node[1].get("cpuid")][1].put_nowait(core)
-					# reschedule cpu
-					utilization_table[node[1].get("cpuid")] = _get_cpu_utilization_tuple(
-						problem.graphs,
-						[node[1] for node in utilization_table[node[1].get("cpuid")][1].queue], node[1].get("cpuid")
-					)
-				except Empty:
-					pass
-			# if chain_pq not entirely scheduled, put it back in chain_pq
-			if [node for node in chain.item().nodes(data=True) if node[1].get("coreid") == -1]:
-				chain_pq.put_nowait(chain)
-	except Empty:
-		pass
+		chain = chain_pq.get_nowait()
+		# get first item of process list without core
+		for node in filter(lambda node: node[1].get("coreid") == -1, chain.item().nodes(data=True)):
+			# get first core from proc_workload with the same processor
+			try:
+				# add process to it
+				core = proc_workload[node[1].get("cpuid")][1].get_nowait()
+				node[1].update({"coreid": core[1]})
+				proc_workload[node[1].get("cpuid")][1].put_nowait(core)
+				# reschedule cpu
+				proc_workload[node[1].get("cpuid")] = _get_cpuload(
+					problem.graphs,
+					[node[1] for node in proc_workload[node[1].get("cpuid")][1].queue],
+					node[1].get("cpuid")
+				)
+			except Empty:
+				pass
 
-	return [(node[0], (
-		node[1].get("cpuid"),
-		node[1].get("coreid")
-	)) for chain in problem.graphs for node in chain.nodes(data=True)]
+		# if at least one node not scheduled, put chain back in chain_pq
+		for node in chain.item().nodes(data=True):
+			if node[1].get("coreid") == -1:
+				chain_pq.put_nowait(PrioritizedItem(_chain_stress(chain), chain))
+				break
+
+	return [
+		((chain.graph.get("name"), node[0]), (node[1].get("cpuid"), node[1].get("coreid")))
+		for chain in problem.graphs for node in chain.nodes(data=True)
+	]
 
 
 def _theoretical_scheduling_time(graph: DiGraph) -> int:
@@ -287,10 +285,10 @@ def _generate_solution(problem: Problem) -> Solution:
 	solution = [[list() for item in core] for core in [cpu for cpu in problem.arch]]
 
 	# group graphs by desc priority level
-	for keyvalue, group in groupby(problem.graphs, key=lambda graph: graph.graph.get("priority")):
+	for keyvalue, group in groupby(problem.graphs, lambda graph: graph.graph.get("priority")):
 		# for each level
-		for i in reversed(sorted(list(group), key=lambda graph: len(graph))):
-			_schedule_graph(i, solution)
+		for graph in reversed(sorted(list(group), key=lambda graph: len(graph))):
+			_schedule_graph(graph, solution)
 
 	return solution
 
@@ -353,11 +351,9 @@ def scheduler(problems: Iterable[Problem]) -> List[Solution]:
 
 	Returns
 	-------
-	Optional[Solution]
-		A solution if there is one, or `None` otherwise.
+	List[Solution]
+		A list of solutions.
 	"""
-
-	futures = list()
 
 	with ThreadPoolExecutor(max_workers=len(problems)) as executor:
 		futures = [executor.submit(_solve_single_problem, problem) for problem in problems]

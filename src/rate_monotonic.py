@@ -10,7 +10,7 @@ from networkx import nodes
 
 # FUNCTIONS ###########################################################################################################
 
-"""Determine the utilization ratio for a process.
+"""Determine the workload ratio for a process.
 
 Parameters
 ----------
@@ -20,13 +20,13 @@ node : nodes
 Returns
 -------
 float
-	The processor utilizationfor the process.
+	The processor workloadfor the process.
 """
 process_ratio: Callable[[nodes], Fraction] = lambda node: Fraction(node[1].get("wcet"), node[1].get("period"))
 
 
-def utilization(processes: Iterable[nodes]) -> float:
-	"""Determine the utilization load carried by an iterable of nodes.
+def workload(processes: Iterable[nodes]) -> float:
+	"""Determine the workload load carried by an iterable of nodes.
 
 	Parameters
 	----------
@@ -36,7 +36,7 @@ def utilization(processes: Iterable[nodes]) -> float:
 	Returns
 	-------
 	float
-		The processor utilization, computed from the periods and WCETs of all processes.
+		The processor workload, computed from the periods and WCETs of all processes.
 	"""
 
 	return sum([process_ratio(node) for node in processes]) if processes is not None else 0.0
@@ -52,7 +52,7 @@ processes : int
 Returns
 -------
 float
-	The sufficient utilization rate for a count of processes to be schedulable.
+	The sufficient workload rate for a count of processes to be schedulable.
 """
 sufficient_condition: Callable[[int], float] = lambda count: count * (pow(2, 1 / count) - 1)
 
@@ -70,4 +70,4 @@ bool
 	Returns 'True' if the `processes` are schedulable, and 'False' otherise.
 """
 is_schedulable: Callable[[Iterable[nodes]], bool] = lambda processes:\
-	utilization(processes) <= sufficient_condition(len(processes))
+	worload(processes) <= sufficient_condition(len(processes))
