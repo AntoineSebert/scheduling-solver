@@ -104,7 +104,6 @@ def main() -> int:
 	problems = problem_builder(args.case, False) if args.case is not None else problem_builder(args.collection, True)
 	solutions = scheduler(problems)
 
-	logging.info("Total working time: " + str(timed.global_time) + "s.")
 	logging.info("Total ellasped time: " + str(process_time()) + "s.")
 
 	return 0

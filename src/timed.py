@@ -8,9 +8,6 @@ from typing import Any, Callable, Optional
 from time import perf_counter
 from functools import wraps
 
-# VARIABLES ###########################################################################################################
-
-global_time = 0
 
 # FUNCTIONS ###########################################################################################################
 
@@ -38,18 +35,13 @@ def timed_callable(message: str) -> Optional[Any]:
 	def callable_decorator(callable: Callable) -> Optional[Any]:
 		@wraps(callable)
 		def timed_wrapper(*args, **kwds) -> Optional[Any]:
-
 			logging.info(message)
 
 			start = perf_counter()
 			result = callable(*args, **kwds)
 			end = perf_counter()
 
-			total_time = end - start
-			global global_time
-			global_time += total_time
-
-			logging.info("Done in " + str(total_time) + "s.")
+			logging.info("Done in " + str(end - start) + "s.")
 
 			return result
 		return timed_wrapper
