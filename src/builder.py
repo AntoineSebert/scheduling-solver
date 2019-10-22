@@ -8,13 +8,15 @@ from pathlib import Path
 from typing import List, Tuple, NoReturn, Mapping
 import xml.etree.ElementTree as et
 from xml.etree.ElementTree import Element, SubElement, tostring
+from concurrent.futures import ThreadPoolExecutor
 
 from networkx import DiGraph, NetworkXNotImplemented
 from networkx.algorithms.dag import is_directed_acyclic_graph
 from networkx.readwrite.graphml import parse_graphml, generate_graphml
 
-from type_aliases import Architecture, Problem
+from datatypes import Architecture, Problem
 from timed import timed_callable
+
 
 # FUNCTIONS ###########################################################################################################
 
@@ -228,6 +230,39 @@ def _get_filepath_pairs(folder_path: Path, recursive: bool = False) -> List[Tupl
 	return filepath_pairs
 
 
+def build_single_problem(filepath_pair: Tuple[Path, Path]) -> Problem:
+	"""Creates the solution for a problem.
+
+	Parameters
+	----------
+	filepath_pair : Tuple[Path, Path]
+		A pair of filepaths pointing to the `*.tsk` and `*.cfg` files.
+
+	Returns
+	-------
+	Problem
+		A problem generated from the test case.
+
+	Raises
+	------
+	NetworkXNotImplemented
+		If one of the graphs contains a cycle.
+	"""
+
+	logging.info("Files found:\n\t" + filepath_pair[0].name + "\n\t" + filepath_pair[1].name)
+
+	graph_list = [DiGraph(parse_graphml(graph)) for graph in _import_graph(filepath_pair[0])]
+	for graph in graph_list:
+		if not is_directed_acyclic_graph(graph):
+			raise NetworkXNotImplemented("The graphs must be acyclic.")
+	logging.info("Imported graphs:\n" + '\n'.join(['\n'.join(generate_graphml(graph)) for graph in graph_list]))
+
+	architecture = _import_arch(filepath_pair[1])
+	logging.info("Imported architecture:\n\t" + '\n\t'.join(','.join(cpu) for cpu in architecture))
+
+	return Problem(name=str(filepath_pair[0]), graphs=graph_list, arch=architecture)
+
+
 # ENTRY POINT #########################################################################################################
 
 
@@ -245,36 +280,23 @@ def problem_builder(folder_path: Path, recursive: bool) -> List[Problem]:
 
 	Returns
 	-------
-	Problem
-		A pair containing a `DiGraph` and an `Architecture` build from the files.
+	List[Problem]
+		A list of `Problem`.
 
 	Raises
 	------
-	NetworkXNotImplemented
-		If one of the graphs contains a cycle.
 	FileNotFoundError
 		If not pair of `*.tsk` and `*.cfg` files can be found.
 	"""
-
-	problems = list()
 
 	filepath_pairs = _get_filepath_pairs(folder_path, recursive)
 
 	if not filepath_pairs:
 		raise FileNotFoundError("No matching files found. At least one *.tsk file and one *.cfg file are necessary.")
 
-	for filepath_pair in filepath_pairs:
-		logging.info("Files found:\n\t" + filepath_pair[0].name + "\n\t" + filepath_pair[1].name)
+	futures = list()
 
-		graph_list = [DiGraph(parse_graphml(graph)) for graph in _import_graph(filepath_pair[0])]
-		for graph in graph_list:
-			if not is_directed_acyclic_graph(graph):
-				raise NetworkXNotImplemented("The graphs must be acyclic.")
-		logging.info("Imported graphs:\n" + '\n'.join(['\n'.join(generate_graphml(graph)) for graph in graph_list]))
+	with ThreadPoolExecutor(max_workers=len(filepath_pairs)) as executor:
+		futures = [executor.submit(build_single_problem, filepath_pair) for filepath_pair in filepath_pairs]
 
-		architecture = _import_arch(filepath_pair[1])
-		logging.info("Imported architecture:\n\t" + '\n\t'.join(','.join(cpu) for cpu in architecture))
-
-		problems.append(Problem(graphs=graph_list, arch=architecture))
-
-	return problems
+	return [future.result() for future in futures]
