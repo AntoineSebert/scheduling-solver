@@ -13,14 +13,17 @@ from networkx import DiGraph, nodes
 
 import logging
 from timed import timed_callable
-from type_aliases import Problem, Solution, Slice
+from datatypes import Problem, Solution, Slice, PrioritizedItem
 from rate_monotonic import utilization
+
 
 # FUNCTIONS ###########################################################################################################
 
 
 def _chain_stress(graph: DiGraph) -> float:
 	"""Computes the stress ratio for a graph.
+	The lower that number is, the more the chain is stressed
+	(in PriorityQueue, lowest valued entries are retrieved first.
 
 	Parameters
 	----------
@@ -38,13 +41,17 @@ def _chain_stress(graph: DiGraph) -> float:
 		If the chain budget is shorter than the scheduled tasks duration.
 	"""
 
-	assigned_tasks_duration = sum([node[1]["wcet"] for node in graph.nodes(data=True) if node[1]["coreid"] != -1])
+	assigned_tasks_duration = sum([node[1].get("wcet") for node in graph.nodes(data=True) if node[1].get("coreid") != -1])
 
-	if graph.graph["budget"] < assigned_tasks_duration:
+	if graph.graph.get("budget") < assigned_tasks_duration:
 		raise NotImplementedError("The Chain duration is shorter than the total tasks duration")
 
-	return (graph.graph["budget"] - assigned_tasks_duration)\
-		/ sum([node[1]["wcet"] for node in graph.nodes(data=True) if node[1]["coreid"] == -1])
+	unassigned_tasks_duration = sum(
+		[node[1].get("wcet") for node in graph.nodes(data=True) if node[1].get("coreid") == -1]
+	)
+	stress = (graph.graph.get("budget") - assigned_tasks_duration)
+
+	return stress / unassigned_tasks_duration if 0 < unassigned_tasks_duration else stress
 
 
 def _get_processes_for_core(graphs: Iterable[DiGraph], core: Tuple[int, int]) -> Optional[List[nodes]]:
@@ -66,14 +73,14 @@ def _get_processes_for_core(graphs: Iterable[DiGraph], core: Tuple[int, int]) ->
 	with ThreadPoolExecutor(max_workers=len(graphs)) as executor:
 		futures = [executor.submit(
 			lambda graph, core: [
-				node for node in graph.nodes(data=True) if node[1]["cpuid"] == core[0] and node[1]["coreid"] == core[1]
+				node for node in graph.nodes(data=True) if node[1].get("cpuid") == core[0] and node[1].get("coreid") == core[1]
 			],
 			graph, core
 		) for graph in graphs]
 
-	processes = [node for future in futures if 0 < len(future.result()) for node in future.result()]
+	processes = [node for future in futures if future.result() for node in future.result()]
 
-	return processes if 0 < len(processes) else None
+	return processes if processes else None
 
 
 def _get_cpu_utilization_tuple(graphs: Iterable[DiGraph], cpu: List[int], cpu_index: int)\
@@ -126,7 +133,7 @@ def _create_chain_pqueue(graphs: Iterable[DiGraph]) -> PriorityQueue:
 	with ThreadPoolExecutor(max_workers=len(graphs)) as executor:
 		futures = [executor.submit(_chain_stress, graph) for graph in graphs]
 		for i, future in enumerate(futures):
-			chain_pqueue.put((future.result(), ref(graphs[i])))
+			chain_pqueue.put(PrioritizedItem(future.result(), ref(graphs[i])))
 
 	return chain_pqueue
 
@@ -177,12 +184,12 @@ def _color_graphs(problem: Problem) -> NoReturn:
 		# get first item of chain_pq
 		while (chain := chain_pq.get_nowait()):
 			# get first item of process list without core
-			for node in filter(lambda node: node[1].get("coreid") == -1, chain[1]().nodes(data=True)):
+			for node in filter(lambda node: node[1].get("coreid") == -1, chain.item().nodes(data=True)):
 				# get first core from utilization_table with the same processor
 				try:
 					# add process to it
 					core = utilization_table[node[1].get("cpuid")][1].get_nowait()
-					node[1]["coreid"] = core[1]
+					node[1].update({"coreid": core[1]})
 					utilization_table[node[1].get("cpuid")][1].put_nowait(core)
 					# reschedule cpu
 					utilization_table[node[1].get("cpuid")] = _get_cpu_utilization_tuple(
@@ -192,7 +199,7 @@ def _color_graphs(problem: Problem) -> NoReturn:
 				except Empty:
 					pass
 			# if chain_pq not entirely scheduled, put it back in chain_pq
-			if 0 < len([node for node in chain[1]().nodes(data=True) if node[1].get("coreid") == -1]):
+			if [node for node in chain.item().nodes(data=True) if node[1].get("coreid") == -1]:
 				chain_pq.put_nowait(chain)
 	except Empty:
 		pass
@@ -217,7 +224,7 @@ def _theoretical_scheduling_time(graph: DiGraph) -> int:
 		The theoretical shortest scheduling time for `graph`.
 	"""
 
-	return sum([node[1]["wcet"] for node in graph.nodes(data=True)])
+	return sum([node[1].get("wcet") for node in graph.nodes(data=True)])
 
 
 @timed_callable("Computing shortest theoretical scheduling time...")
@@ -256,8 +263,10 @@ def _schedule_graph(graph: DiGraph, solution: Solution) -> NoReturn:
 	for node in graph.nodes(data=True):
 		# assign time slice for each process & add it to corresponding core, at the end of the list
 		task_list = solution[node[1].get("cpuid")][node[1].get("coreid")]
-		start = 0 if len(task_list) == 0 else task_list[-1].end
-		task_list.append(Slice(task=graph.graph["name"] + '-' + str(node[0]), start=start, end=start + node[1].get("wcet")))
+		start = 0 if not task_list else task_list[-1].end
+		task_list.append(
+			Slice(task=graph.graph.get("name") + '-' + str(node[0]), start=start, end=start + node[1].get("wcet"))
+		)
 
 
 @timed_callable("Generating a solution from the coloration...")
@@ -278,7 +287,7 @@ def _generate_solution(problem: Problem) -> Solution:
 	solution = [[list() for item in core] for core in [cpu for cpu in problem.arch]]
 
 	# group graphs by desc priority level
-	for keyvalue, group in groupby(problem.graphs, key=lambda graph: graph.graph["priority"]):
+	for keyvalue, group in groupby(problem.graphs, key=lambda graph: graph.graph.get("priority")):
 		# for each level
 		for i in reversed(sorted(list(group), key=lambda graph: len(graph))):
 			_schedule_graph(i, solution)
@@ -300,7 +309,35 @@ def _hyperperiod_duration(solution: Solution) -> int:
 		The hyperperiod length for the solution.
 	"""
 
-	return max([core[-1].end for cpu in solution for core in cpu if 0 < len(core)])
+	return max([core[-1].end for cpu in solution for core in cpu if core])
+
+
+def _solve_single_problem(problem: Problem) -> Solution:
+	"""Creates the solution for a problem.
+
+	Parameters
+	----------
+	problem: Problem
+		A `Problem` from the problem builder.
+
+	Returns
+	-------
+	solution : Solution
+		A solution for the problem.
+	"""
+
+	logging.info("Solving " + problem.name)
+	logging.info("Theoretical shortest scheduling time:\t" + str(_shortest_theoretical_scheduling(problem.graphs)) + "ms.")
+
+	coloration = _color_graphs(problem)
+	logging.info("Coloration found:\n\t" + '\n\t'.join(str(node) for node in coloration))
+
+	solution = _generate_solution(problem)
+
+	logging.info("Solution found:\n\t" + '\n\t'.join([str(scheduling) for scheduling in solution]))
+	logging.info("Hyperperiod duration:\t" + str(_hyperperiod_duration(solution)))
+
+	return solution
 
 
 # ENTRY POINT #########################################################################################################
@@ -320,16 +357,9 @@ def scheduler(problems: Iterable[Problem]) -> List[Solution]:
 		A solution if there is one, or `None` otherwise.
 	"""
 
-	solutions = list()
+	futures = list()
 
-	for problem in problems:
-		logging.info("Theoretical shortest scheduling time:\t" + str(_shortest_theoretical_scheduling(problem.graphs)) + "ms.")
+	with ThreadPoolExecutor(max_workers=len(problems)) as executor:
+		futures = [executor.submit(_solve_single_problem, problem) for problem in problems]
 
-		coloration = _color_graphs(problem)
-		logging.info("Coloration found:\n\t" + '\n\t'.join(str(node) for node in coloration))
-
-		solutions.append(_generate_solution(problem))
-		logging.info("Solution found:\n\t" + str(solutions[-1]))
-		logging.info("Hyperperiod duration:\t" + str(_hyperperiod_duration(solutions[-1])))
-
-	return solutions
+	return [future.result() for future in futures]

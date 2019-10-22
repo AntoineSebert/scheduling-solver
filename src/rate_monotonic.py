@@ -22,7 +22,7 @@ Returns
 float
 	The processor utilizationfor the process.
 """
-process_ratio: Callable[[nodes], Fraction] = lambda node: Fraction(node[1]["wcet"], node[1]["period"])
+process_ratio: Callable[[nodes], Fraction] = lambda node: Fraction(node[1].get("wcet"), node[1].get("period"))
 
 
 def utilization(processes: Iterable[nodes]) -> float:
