@@ -156,8 +156,26 @@ Solver -->|Solution| End(End)
 
 ## Roadmap
 
-- [ ] time benchmark : https://docs.python.org/3.7/library/timeit.html
-- [ ] random problem generation : https://networkx.github.io/documentation/stable/reference/randomness.html
-- [ ] parallelize : https://docs.python.org/3.7/library/threading.html, https://docs.python.org/3.7/library/queue.html or https://docs.python.org/3.7/library/concurrent.futures.html
+### This month - 22/11/2019
+
 - [ ] catch all exceptions : https://docs.python.org/3/library/contextlib.html
+- [ ] generate visual representation
+- [ ] write tests
+- [ ] progressbar
+
+### This week - 29/10/2019
+
+- [ ] support Period, Deadline, Offset, MaxJitter
+- [ ] pqueue of nodes instead of chains
+
+### Tomorrow - 23/10/2019
+
+- [ ] add -o, --output arg
+- [ ] add XML output
+- [ ] replace pids within chains by global pids
+- [ ] change Slice pids to ref(node)
+
+### Today - 22/10/2019
+
+- [ ] use graph names instead of indexes
 ```
