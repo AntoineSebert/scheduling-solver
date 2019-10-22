@@ -5,9 +5,9 @@
 
 import logging
 from pathlib import Path
-from typing import List, Tuple, NoReturn, Mapping
+from typing import List, Tuple, NoReturn, Mapping, Iterable, Dict
 import xml.etree.ElementTree as et
-from xml.etree.ElementTree import Element, SubElement, tostring
+from xml.etree.ElementTree import Element, SubElement, tostring, ElementTree
 from concurrent.futures import ThreadPoolExecutor
 
 from networkx import DiGraph, NetworkXNotImplemented
@@ -70,28 +70,43 @@ def _insert_node_keys(graphml: Element, attributes: Mapping[str, str]) -> NoRetu
 				default.text = "-1" if attribute == "MaxJitter" or attribute == "CoreId" else "0"
 
 
-def _insert_chain_keys(graphml: Element, attributes: Mapping[str, str]) -> NoReturn:
-	"""Add the <key> tags to a <graph> from a dict of <chain> attributes.
+def _get_keys(tree: ElementTree, paths: Iterable[Tuple[str, str]]) -> Dict[str, str]:
+	"""Returns the attributes found in the first <graph> tag
 
 	Parameters
 	----------
-	graphml : Element
+	tree : ElementTree
 		A <graphml> root tag.
-	attributes : Mapping[str, str]
-		A dict of attributes to insert into `graphml` as <key> tags.
+	attributes : Iterable[Tuple[str, str]]
+		An iterable containing tuples of paths where to look up and destinations (an alias for the paths).
+
+	Returns
+	-------
+		Dict[str, str]
+			A dictionary of containing destinations as values and lists of <key> tags as attributes.
 	"""
 
-	for attribute, value in attributes.items():
-		key = SubElement(graphml, "key", {
-			"id": "d" + str(len(graphml)),
-			"for": "graph",
-			"attr.name": attribute.lower(),
-			"attr.type": "string" if attribute == "Name" else "int"
-		})
+	attributes = dict()
 
-		if attribute != "Name":
-			default = SubElement(key, "default")
-			default.text = "0"
+	for path, dest in paths:
+		keys = list()
+		for attribute, _ in tree.find(path).attrib.items():
+			key = Element("key", {
+				"id": dest + str(len(keys)),
+				"for": dest,
+				"attr.name": attribute.lower(),
+				"attr.type": "string" if attribute == "Name" else "int"
+			})
+
+			if attribute != "Name":
+				default = SubElement(key, "default")
+				default.text = "-1" if attribute == "MaxJitter" or attribute == "CoreId" else "0"
+			keys.append(key)
+
+		if keys:
+			attributes[dest] = keys
+
+	return attributes
 
 
 @timed_callable("Generating graph from  the '.tsk' file...")
@@ -112,6 +127,7 @@ def _import_graph(filepath: Path) -> List[str]:
 
 	graph_tree = et.parse(filepath)
 	graph_list = list()
+	graphml_keys = _get_keys(graph_tree, [("Graph/Chain", "chain"), ("Graph/Node", "node")])
 
 	# Add <graph> tags and their children <data>, <node> and <edge>
 	for chain in graph_tree.iter("Chain"):
@@ -122,9 +138,11 @@ def _import_graph(filepath: Path) -> List[str]:
 			"xsi:schemaLocation": "http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.1/graphml.xsd"
 		}))
 
-		# Add keys # TODO: transform into static elements
-		_insert_chain_keys(graph_list[-1], graph_tree.find("Graph/Chain").attrib)
-		_insert_node_keys(graph_list[-1], graph_tree.find("Graph/Node").attrib)
+		# Add keys
+		for key in graphml_keys.get("chain"):
+			graph_list[-1].append(key)
+		for key in graphml_keys.get("node"):
+			graph_list[-1].append(key)
 
 		# Add <graph> tag
 		graph = SubElement(graph_list[-1], "graph", {

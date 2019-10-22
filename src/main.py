@@ -26,7 +26,6 @@ from argparse import ArgumentParser
 from time import process_time
 from typing import NoReturn
 
-import timed
 from log import colored_handler
 from solver import scheduler
 from builder import problem_builder

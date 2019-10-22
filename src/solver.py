@@ -265,7 +265,7 @@ def _schedule_graph(graph: DiGraph, solution: Solution) -> NoReturn:
 		task_list = solution[node[1].get("cpuid")][node[1].get("coreid")]
 		start = 0 if not task_list else task_list[-1].end
 		task_list.append(
-			Slice(task=graph.graph.get("name") + '-' + str(node[0]), start=start, end=start + node[1].get("wcet"))
+			Slice(task=(graph.graph.get("name"), node[0]), start=start, end=start + node[1].get("wcet"))
 		)
 
 
