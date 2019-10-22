@@ -4,7 +4,7 @@
 # IMPORTS #############################################################################################################
 
 
-from typing import List
+from typing import List, Dict
 from weakref import ref
 from collections import namedtuple
 from dataclasses import dataclass, field
@@ -22,8 +22,8 @@ class PrioritizedItem:
 # TYPE ALIASES ########################################################################################################
 
 
-Architecture = List[List[int]]
+Architecture = Dict[int, List[int]]
 
 Slice = namedtuple('Slice', ['task', 'start', 'end'])
 Problem = namedtuple("Problem", ["name", "graphs", "arch"])
-Solution = List[List[List[Slice]]]
+Solution = Dict[int, List[List[Slice]]]

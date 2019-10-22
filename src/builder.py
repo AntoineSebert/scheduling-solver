@@ -38,11 +38,10 @@ def _import_arch(filepath: Path) -> Architecture:
 		Basically we have : MacroTick = Architecture[cpu[core]].
 	"""
 
-	return [[
-		core.get("MacroTick") for core in sorted(corelist, key=lambda e: e.get("Id"))
-	] for corelist in [
-		cpu for cpu in sorted(et.parse(filepath).findall("Cpu"), key=lambda e: e.get("Id"))
-	]]
+	return {
+		int(cpu.get("Id")): [core.get("MacroTick") for core in sorted(cpu, key=lambda e: e.get("Id"))]
+		for cpu in sorted(et.parse(filepath).findall("Cpu"), key=lambda e: e.get("Id"))
+	}
 
 
 def _get_keys(tree: ElementTree, paths: Iterable[Tuple[str, str]]) -> Dict[str, str]:
@@ -57,8 +56,8 @@ def _get_keys(tree: ElementTree, paths: Iterable[Tuple[str, str]]) -> Dict[str, 
 
 	Returns
 	-------
-		Dict[str, str]
-			A dictionary of containing destinations as values and lists of <key> tags as attributes.
+	Dict[str, str]
+		A dictionary of containing destinations as values and lists of <key> tags as attributes.
 	"""
 
 	attributes = dict()
@@ -248,10 +247,10 @@ def _build_single_problem(filepath_pair: Tuple[Path, Path]) -> Problem:
 			raise NetworkXNotImplemented("The graphs must be acyclic.")
 	logging.info("Imported graphs:\n" + '\n'.join(['\n'.join(generate_graphml(graph)) for graph in graph_list]))
 
-	architecture = _import_arch(filepath_pair[1])
-	logging.info("Imported architecture:\n\t" + '\n\t'.join(','.join(cpu) for cpu in architecture))
+	arch = _import_arch(filepath_pair[1])
+	logging.info("Imported architecture:\n\t" + '\n\t'.join([str(cpu) + str(arch.get(cpu)) for cpu in arch]))
 
-	return Problem(name=str(filepath_pair[0]), graphs=graph_list, arch=architecture)
+	return Problem(name=str(filepath_pair[0]), graphs=graph_list, arch=arch)
 
 
 # ENTRY POINT #########################################################################################################

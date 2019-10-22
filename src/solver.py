@@ -62,7 +62,7 @@ def _get_processes_for_core(graphs: Iterable[DiGraph], core: Tuple[int, int]) ->
 	graphs : Iterable[DiGraph]
 		A list of graphs in which perform the search.
 	core : Tuple[int, int]
-		A core to look for in the processes' attributes. The tuple member is the cpu, the second the core itself.
+		A core to look for in the processes' attributes. The tuple member is the cpu id, the second the core itself.
 
 	Returns
 	-------
@@ -81,17 +81,15 @@ def _get_processes_for_core(graphs: Iterable[DiGraph], core: Tuple[int, int]) ->
 	return processes if processes else None
 
 
-def _get_cpuload(graphs: Iterable[DiGraph], cpu: List[int], cpuid: int) -> Tuple[float, PriorityQueue]:
+def _get_cpuload(graphs: Iterable[DiGraph], cpu: Tuple[int, List[int]]) -> Tuple[float, PriorityQueue]:
 	"""Get the global workload carried by the processes scheduled on a cpu, and by core.
 
 	Parameters
 	----------
 	graphs : Iterable[DiGraph]
 		A list of graphs in which perform the search.
-	cpu : List[int]
-		A CPU from the architecture.
-	cpuid : int
-		A CPU index within the architecture.
+	cpu : Tuple[int, List[int]]
+		A CPU tuple from the architecture.
 
 	Returns
 	-------
@@ -100,11 +98,11 @@ def _get_cpuload(graphs: Iterable[DiGraph], cpu: List[int], cpuid: int) -> Tuple
 		containing the workload by core and the core id.
 	"""
 
-	ratios = PriorityQueue(maxsize=len(cpu))
+	ratios = PriorityQueue(maxsize=len(cpu[1]))
 	u_sum = 0.0
 
 	for coreid, coreload in [
-		(coreid, workload(_get_processes_for_core(graphs, (cpuid, coreid)))) for coreid, core in enumerate(cpu)
+		(coreid, workload(_get_processes_for_core(graphs, (cpu[0], coreid)))) for coreid, core in enumerate(cpu[1])
 	]:
 		u_sum += coreload
 		ratios.put((coreload, coreid))
@@ -152,13 +150,15 @@ def _create_proc_workload(problem: Problem) -> List[Tuple[float, PriorityQueue]]
 	"""
 
 	with ThreadPoolExecutor(max_workers=len(problem.arch)) as executor:
-		futures = [executor.submit(_get_cpuload, problem.graphs, cpu, i) for i, cpu in enumerate(problem.arch)]
+		futures = [
+			executor.submit(_get_cpuload, problem.graphs, (cpuid, corelist)) for cpuid, corelist in problem.arch.items()
+		]
 
 	return [future.result() for future in futures]
 
 
 @timed_callable("Generating a coloration for the problem...")
-def _color_graphs(problem: Problem) -> NoReturn:
+def _color_graphs(problem: Problem) -> List[Tuple[int, Tuple[int, int]]]:
 	"""Color the graphs within the problem.
 
 	Parameters
@@ -190,8 +190,7 @@ def _color_graphs(problem: Problem) -> NoReturn:
 				# reschedule cpu
 				proc_workload[node[1].get("cpuid")] = _get_cpuload(
 					problem.graphs,
-					[node[1] for node in proc_workload[node[1].get("cpuid")][1].queue],
-					node[1].get("cpuid")
+					(node[1].get("cpuid"), [node[1] for node in proc_workload[node[1].get("cpuid")][1].queue])
 				)
 			except Empty:
 				pass
@@ -260,11 +259,9 @@ def _schedule_graph(graph: DiGraph, solution: Solution) -> NoReturn:
 	# for each process in chain
 	for node in graph.nodes(data=True):
 		# assign time slice for each process & add it to corresponding core, at the end of the list
-		task_list = solution[node[1].get("cpuid")][node[1].get("coreid")]
+		task_list = solution.get(node[1].get("cpuid"))[node[1].get("coreid")]
 		start = 0 if not task_list else task_list[-1].end
-		task_list.append(
-			Slice(task=(graph.graph.get("name"), node[0]), start=start, end=start + node[1].get("wcet"))
-		)
+		task_list.append(Slice(task=(graph.graph.get("name"), node[0]), start=start, end=start + node[1].get("wcet")))
 
 
 @timed_callable("Generating a solution from the coloration...")
@@ -282,7 +279,7 @@ def _generate_solution(problem: Problem) -> Solution:
 		A solution for the problem.
 	"""
 
-	solution = [[list() for item in core] for core in [cpu for cpu in problem.arch]]
+	solution = {cpu: [list() for core in corelist] for cpu, corelist in problem.arch.items()}
 
 	# group graphs by desc priority level
 	for keyvalue, group in groupby(problem.graphs, lambda graph: graph.graph.get("priority")):
@@ -307,7 +304,7 @@ def _hyperperiod_duration(solution: Solution) -> int:
 		The hyperperiod length for the solution.
 	"""
 
-	return max([core[-1].end for cpu in solution for core in cpu if core])
+	return max([task_list[-1].end for _, corelist in solution.items() for task_list in corelist if task_list])
 
 
 def _solve_single_problem(problem: Problem) -> Solution:
