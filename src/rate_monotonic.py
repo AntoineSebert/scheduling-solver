@@ -70,4 +70,4 @@ bool
 	Returns 'True' if the `processes` are schedulable, and 'False' otherise.
 """
 is_schedulable: Callable[[Iterable[nodes]], bool] = lambda processes:\
-	worload(processes) <= sufficient_condition(len(processes))
+	workload(processes) <= sufficient_condition(len(processes))
