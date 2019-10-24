@@ -329,7 +329,11 @@ def _solve_single_problem(problem: Problem) -> Solution:
 
 	solution = _generate_solution(problem)
 
-	logging.info("Solution found:\n\t" + '\n\t'.join([str(scheduling) for scheduling in solution]))
+	logging.info(
+		"Solution found:\n\t" + '\n\t'.join(
+			[str(key) + '\n\t\t' + '\n\t\t'.join([str(val) for val in values]) for key, values in solution.items()]
+		)
+	)
 	logging.info("Hyperperiod duration:\t" + str(_hyperperiod_duration(solution)))
 
 	return solution
