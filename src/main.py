@@ -29,12 +29,13 @@ from typing import NoReturn
 from log import colored_handler
 from solver import scheduler
 from builder import problem_builder
+from formatter import OutputFormat
 
 
 # FUNCTIONS ###########################################################################################################
 
 
-def _create_parser_arg_group(parser: ArgumentParser) -> NoReturn:
+def _add_dataset_arggroup(parser: ArgumentParser) -> NoReturn:
 	"""Adds a mutual exclusive group of arguments to the parser to handle dataset batch or single mode.
 
 	Parameters
@@ -47,8 +48,8 @@ def _create_parser_arg_group(parser: ArgumentParser) -> NoReturn:
 	group.add_argument(
 		"--case",
 		type=Path,
-		help="Import problem description from FOLDER (only the first *.tsk and *.cfg files found are taken, \
-		all potential others are ignored).",
+		help="Import problem description from FOLDER\
+		(only the first *.tsk and *.cfg files found are taken, all potential others are ignored).",
 		metavar='FOLDER'
 	)
 	group.add_argument(
@@ -74,11 +75,25 @@ def _create_cli_parser() -> ArgumentParser:
 		description="Solve task scheduling problems using graph coloration.",
 		allow_abbrev=True,
 	)
+
 	parser.add_argument(
-		"--verbose", action="store_const", const=True, help="Toggle program verbosity."
+		'-f', '--format',
+		nargs=1,
+		default='xml',
+		choices=[member.name for member in OutputFormat],
+		help="Either one of " + ', '.join([member.name for member in OutputFormat]),
+		metavar="FORMAT",
+		dest="format"
+	)
+	parser.add_argument(
+		"--verbose",
+		action="store_true",
+		help="Toggle program verbosity.",
+		default=False
 	)
 	parser.add_argument("--version", action="version", version="%(prog)s 0.1.0")
-	_create_parser_arg_group(parser)
+
+	_add_dataset_arggroup(parser)
 
 	return parser
 
@@ -97,7 +112,7 @@ def main() -> int:
 
 	args = _create_cli_parser().parse_args()
 	logging.getLogger().addHandler(
-		colored_handler(verbose=False if args.verbose is None else True)
+		colored_handler(verbose=args.verbose)
 	)
 
 	problems = problem_builder(args.case, False) if args.case is not None else problem_builder(args.collection, True)
@@ -105,7 +120,12 @@ def main() -> int:
 
 	logging.info("Total ellasped time: " + str(process_time()) + "s.")
 
-	return 0
+	formatted = OutputFormat[args.format[0]](solutions)
+
+	for solution in formatted:
+		logging.info("Formatted solutions: \n" + solution)
+
+	return formatted # yield output ?
 
 
 if __name__ == "__main__":
