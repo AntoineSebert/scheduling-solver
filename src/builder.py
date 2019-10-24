@@ -205,6 +205,8 @@ def _get_filepath_pairs(folder_path: Path, recursive: bool = False) -> List[Tupl
 		A list of pair containg two paths, to a `*.tsk` and `*.cfg` file
 	"""
 
+	filepath_pairs = list()
+
 	try:
 		filepath_pairs = [_import_files_from_folder(folder_path)]
 	except StopIteration:
@@ -213,7 +215,7 @@ def _get_filepath_pairs(folder_path: Path, recursive: bool = False) -> List[Tupl
 	if recursive:
 		for subfolder in filter(lambda e: e.is_dir(), folder_path.iterdir()):
 			try:
-				filepath_pairs += _get_filepath_pairs(subfolder, True)
+				[filepath_pairs.append(filepath) for filepath in _get_filepath_pairs(subfolder, True) if filepath]
 			except StopIteration:
 				pass
 
