@@ -25,7 +25,7 @@ $ python --version
 
 ### Package Installer
 
-We will use *pip* as **package installer**.
+We will use *pip* as package installer.
 
 You can install it or upgrade your current installation by following [this guide](https://pip.pypa.io/en/stable/installing/).
 
@@ -54,30 +54,13 @@ You can install it with:
 pip install pylint
 ```
 
-### Libraries
-
-#### NetworkX
-
-The project relies on the package *NetworkX*.
-
-Its documentation can be found at https://networkx.github.io/documentation/stable/tutorial.html.
-
-You can install it with:
-```bash
-pip install networkx
-```
-or update an existing installation with:
-```bash
-pip install --upgrade networkx
-```
-
 ## Get started
 
 ### Create Workflow
 
 Create the project by running the following:
 ```bash
-pipenv --python 3.7
+pipenv --python 3.6
 ```
 
 Install all the dependencies by running the following:
@@ -140,6 +123,7 @@ Solver -->|Solution| End(End)
 
 ## File Hierarchy
 
+```
 + root/
   + data/
   | + case1.cfg
@@ -159,23 +143,19 @@ Solver -->|Solution| End(End)
 ### This month - 22/11/2019
 
 - [ ] catch all exceptions : https://docs.python.org/3/library/contextlib.html
-- [ ] generate visual representation
 - [ ] write tests
-- [ ] progressbar
+- [ ] preemption
+- [ ] optimize : https://docs.python.org/3/library/collections.html, https://docs.python.org/3/library/stdtypes.html
+- [ ] setup.py : https://setuptools.readthedocs.io/en/latest/pkg_resources.html
+- [ ] cython : http://docs.cython.org/en/latest/src/quickstart/build.html, http://docs.cython.org/en/latest/
 
-### This week - 29/10/2019
+### This week - 05/11/2019
 
-- [ ] support Period, Deadline, Offset, MaxJitter
 - [ ] pqueue of nodes instead of chains
+- [ ] support Period, Deadline, Offset, MaxJitter
+- [ ] drop networkx
 
-### Tomorrow - 23/10/2019
+### 29/10/2019
 
-- [ ] add -o, --output arg
-- [ ] add XML output
-- [ ] replace pids within chains by global pids
-- [ ] change Slice pids to ref(node)
-
-### Today - 22/10/2019
-
-- [ ] use graph names instead of indexes
-```
+- [ ] generate visual representation
+- [ ] OR-tools
