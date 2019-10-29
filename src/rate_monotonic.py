@@ -3,56 +3,58 @@
 
 # IMPORTS #############################################################################################################
 
+
 from fractions import Fraction
 from typing import Iterable, Callable
 
-from networkx import nodes
+from datatypes import Node
+
 
 # FUNCTIONS ###########################################################################################################
 
-"""Determine the workload ratio for a process.
+
+"""Determine the workload ratio for a node.
 
 Parameters
 ----------
-node : nodes
-	A node, that must have "wcet" and "period" attributes.
+node : Node
+	A node representing a task.
 
 Returns
 -------
 float
-	The processor workloadfor the process.
+	The processor workload for the task.
 """
-process_ratio: Callable[[nodes], Fraction] = lambda node: Fraction(node[1].get("wcet"), node[1].get("period"))
+process_ratio: Callable[[Node], Fraction] = lambda node: Fraction(node.wcet, node.period)
 
 
-def workload(processes: Iterable[nodes]) -> float:
-	"""Determine the workload load carried by an iterable of nodes.
-
-	Parameters
-	----------
-	processes : Iterable[nodes]
-		An iterable of nodes. The nodes must have "wcet" and "period" attributes.
-
-	Returns
-	-------
-	float
-		The processor workload, computed from the periods and WCETs of all processes.
-	"""
-
-	return sum([process_ratio(node) for node in processes]) if processes is not None else 0.0
-
-
-"""Determine the sufficient condition for schedulability of a processor or core.
+"""Determine the workload load carried by an iterable of nodes.
 
 Parameters
 ----------
-processes : int
+processes : Iterable[Node]
+	An iterable of nodes representing tasks.
+
+Returns
+-------
+float
+	The processor workload, computed from the periods and WCETs of all tasks.
+"""
+workload: Callable[[Iterable[Node]], float] =\
+lambda tasks: sum([process_ratio(node) for node in tasks]) if tasks is not None else 0.0
+
+
+"""Determine the sufficient condition for schedulability of a count of tasks.
+
+Parameters
+----------
+count : int
 	A number of processes.
 
 Returns
 -------
 float
-	The sufficient workload rate for a count of processes to be schedulable.
+	The sufficient workload rate for a count of tasks to be schedulable.
 """
 sufficient_condition: Callable[[int], float] = lambda count: count * (pow(2, 1 / count) - 1)
 
@@ -61,13 +63,12 @@ sufficient_condition: Callable[[int], float] = lambda count: count * (pow(2, 1 /
 
 Parameters
 ----------
-processes : Iterable[nodes]
-	An iterable of periodic tasks.
+tasks : Iterable[Node]
+	An iterable of nodes representing periodic tasks.
 
 Returns
 -------
 bool
-	Returns 'True' if the `processes` are schedulable, and 'False' otherise.
+	Returns 'True' if the tasks are schedulable, and 'False' otherise.
 """
-is_schedulable: Callable[[Iterable[nodes]], bool] = lambda processes:\
-	workload(processes) <= sufficient_condition(len(processes))
+is_schedulable: Callable[[Iterable[Node]], bool] = lambda tasks: workload(tasks) <= sufficient_condition(len(tasks))
