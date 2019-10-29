@@ -10,8 +10,10 @@ flake8-bugbear = "*"
 flake8-docstrings = "*"
 
 [packages]
-networkx = "*"
+ortools = "*"
 matplotlib = "*"
+setuptools = "*"
+tqdm = "*"
 
 [requires]
-python_version = "3.8"
+python_version = "3.6"
