@@ -16,9 +16,10 @@ Antoine **Sébert**
 
 Get the interpreter on the [official website](https://www.python.org/downloads/).
 
-We will be working with the version **3.7.x**.
+We will be working with the version **3.6.x**.
 
 You can check the interpreter's version with:
+
 ```bash
 $ python --version
 ```
@@ -29,9 +30,10 @@ We will use *pip* as package installer.
 
 You can install it or upgrade your current installation by following [this guide](https://pip.pypa.io/en/stable/installing/).
 
-You can check the package installer's version with:
+Then, check if the package installer has been installed for *Python 3.6* with:
+
 ```bash
-pip --version
+$ pip --version
 ```
 
 The packages index can be accessed [here](https://pypi.org/).
@@ -41,101 +43,150 @@ The packages index can be accessed [here](https://pypi.org/).
 To simplify the environment's management, we will use *pipenv*.
 
 You can install it with:
+
 ```bash
-pip install pipenv
-```
-
-### Lint & Checks
-
-We encourage the inclusion of linters and formatters as a good practice.
-
-You can install it with:
-```bash
-pip install pylint
+$ pip install pipenv
 ```
 
 ## Get started
 
-### Create Workflow
+### Get the sources
+
+Clone the branch with:
+
+### Create workflow
 
 Create the project by running the following:
+
 ```bash
-pipenv --python 3.6
+$ pipenv --python 3.6
 ```
 
 Install all the dependencies by running the following:
+
 ```bash
-pipenv install --dev
+$ pipenv update
 ```
 
 ## Launch
 
-Run the project with
+Change your working directory to the project's directory and run it with:
+
 ```bash
-python src/main.py data_folder/
+$ cd ".../02229---systems-optimization"
+$ python src/main.py
 ```
 
 ### Usage
 
-```
-Usage:
-	main.py --version
-	main.py (-h | --help)
-	main.py folder <DATASET_FOLDER>
-	main.py folder <DATASET_FOLDER> --verbose
+You can show the CLI usage with:
 
-Arguments:
-	folder <DATASET_FOLDER>   The dataset folder that must contain one *.tsk file and one *.cfg file.
-
-Options:
-	-h --help	Show this screen.
-	--version	Show version.
-	--verbose	Toggle verbose output.
-```
-
-### Tests suit and other checks
-
-Security Checks:
 ```bash
-pipenv check
+$ python src/main.py --help
+usage: SOLVER [-h] [-f FORMAT] [--verbose] [--version] 
+              (--case FOLDER | --collection FOLDER)
+
+Solve task scheduling problems using graph coloration.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -f FORMAT, --format FORMAT
+                        Either one of xml, json, raw, svg
+  --verbose             Toggle program verbosity.
+  --version             show program's version number and exit
+  --case FOLDER         Import problem description from FOLDER (only the first
+                        *.tsk and *.cfg files found are taken, all potential
+                        others are ignored).
+  --collection FOLDER   Recursively import problem descriptions from FOLDER
+                        and/or subfolders (only the first *.tsk and *.cfg
+                        files found of each folder are taken, all potential
+                        others are ignored).
 ```
 
-Formatting and Syntax Errors:
+### Example
+
+Solve the test case [data/Case 1](data/Case 1) with:
+
 ```bash
-pylint src/main.py
+$ python src/main.py --case "data/Case 1"
+```
+
+Solve all the test cases [data/100pct](data/100pct) with:
+
+```bash
+$ python src/main.py --collection "data/100pct"
+```
+
+### Tests suite and style checks
+
+Run the tests with:
+
+```bash
+$ python -m unittest
+```
+
+*Note: this feature is not supported yet. See the [roadmap](#Roadmap) section.*
+
+Perform a style check on the whole source with:
+
+```bash
+$ flake8
 ```
 
 ### Other
 
 Dependency Graph:
 ```bash
-pipenv graph
+$ pipenv graph
 ```
 
 ## Simplified operation
 
 ```mermaid
 graph LR
-Start(Start) -->|raw| Builder
+Start(Start) -->|XML| Builder
 Builder -->|IR| Solver
-Solver -->|Solution| End(End)
+Solver -->|Solution| Formatter
+Formatter -->|Fmt Solution| End(End)
 ```
 
 ## File Hierarchy
 
 ```
-+ root/
-  + data/
-  | + case1.cfg
-  | + case1.tsk
-  + src/
-  | + main.py
-  + .gitattributes
-  + .gitlab-ci.yml
-  + .gitignore
-  + Pipfile
-  + Pipfile.lock
-  + README.md
+--root/
+  +--build/					// future support for Cython builds
+  +--data/					// test cases
+  |  +--100pct/					// complex test case
+  |  +--200pct/					// complex test case
+  |  +--300pct/					// complex test case
+  |  +--400pct/					// complex test case
+  |  +--500pct/					// complex test case
+  |  +--Case 1/					// simple test case
+  |  +--Case 2/					// simple test case
+  |  +--Case 3/					// simple test case
+  |  +--Case 4/					// simple test case
+  |  +--Case 5/					// simple test case
+  |  +--Case 6/					// simple test case
+  |  +--readme.txt				// test case data model definition
+  +--src/					// sources
+  |  +--builder.py				// problem builder
+  |  +--datatypes.py			// structured data
+  |  +--draw.py					// problem & solution painter
+  |  +--formatter.py			// solution formatter
+  |  +--log.py					// logging handler
+  |  +--main.py					// entry point
+  |  +--rate_monotonic.py		// rate monotonic -related utilities
+  |  +--solver.py				// problem solver / solution generator
+  |  +--timed.py				// timed function wrapper
+  +--tests/					// tests
+  |  +--main.py					// tests for src/main.py
+  +--.flake8				// project-specific styles
+  +--.gitattributes			// project attributes
+  +--.gitignore				// unstaged files and folders
+  +--.gitlab-ci.yml			// Gitlab pipeline configuration
+  +--Pipfile				// pipenv configuration
+  +--README.md				// this file
+  +--setup.py				// python package definition
 ```
 
 ## Roadmap
@@ -143,9 +194,10 @@ Solver -->|Solution| End(End)
 ### This month - 22/11/2019
 
 - [ ] catch all exceptions : https://docs.python.org/3/library/contextlib.html
-- [ ] write tests
+- [ ] write tests : https://docs.python.org/3/library/unittest.html
 - [ ] preemption
-- [ ] optimize : https://docs.python.org/3/library/collections.html, https://docs.python.org/3/library/stdtypes.html
+- [ ] benchmark : https://github.com/python/pyperformance
+- [ ] optimize : https://docs.python.org/3/library/collections.html, https://docs.python.org/3/library/stdtypes.html, https://stackoverflow.com/questions/45123238/python-class-vs-tuple-huge-memory-overhead/45123561
 - [ ] setup.py : https://setuptools.readthedocs.io/en/latest/pkg_resources.html
 - [ ] cython : http://docs.cython.org/en/latest/src/quickstart/build.html, http://docs.cython.org/en/latest/
 
@@ -153,9 +205,13 @@ Solver -->|Solution| End(End)
 
 - [ ] pqueue of nodes instead of chains
 - [ ] support Period, Deadline, Offset, MaxJitter
-- [ ] drop networkx
+- [ ] OR-tools
 
-### 29/10/2019
+### 31/10/2019
 
 - [ ] generate visual representation
-- [ ] OR-tools
+- [ ] workload update (static attrs in core and cpu, invalidated on modification)
+- [ ] replace named tuples by mutable equivalent : https://bitbucket.org/intellimath/recordclass/src/default/
+- [ ] rename branch, create fork for working team
+- [ ] investigate bug while processing [](data/300pct)
+- [ ] replace `float` by `Fraction`
