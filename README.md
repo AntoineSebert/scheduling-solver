@@ -206,12 +206,14 @@ Formatter -->|Fmt Solution| End(End)
 - [ ] pqueue of nodes instead of chains
 - [ ] support Period, Deadline, Offset, MaxJitter
 - [ ] OR-tools
+- [ ] add references support to avoid data copy
+- [ ] repair pipeline
+- [ ] generate visual representation
 
 ### 31/10/2019
 
-- [ ] generate visual representation
 - [ ] workload update (static attrs in core and cpu, invalidated on modification)
 - [ ] replace named tuples by mutable equivalent : https://bitbucket.org/intellimath/recordclass/src/default/
-- [ ] rename branch, create fork for working team
 - [ ] investigate bug while processing [](data/300pct)
 - [ ] replace `float` by `Fraction`
+- [ ] change `Problem.name` to `Problem.filepair`
