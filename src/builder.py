@@ -22,7 +22,7 @@ def _import_arch(filepath: Path) -> Architecture:
 	Parameters
 	----------
 	filepath : Path
-		A `Path` poiting to a *.cfg* file describing the processor architecture.
+		A `Path` to a *.cfg* file describing the processor architecture.
 
 	Returns
 	-------
@@ -53,7 +53,7 @@ def _import_graph(filepath: Path) -> Graph:
 	Returns
 	-------
 	Graph
-		An iterable of chains.
+		An iterable of `Chain`.
 	"""
 
 	graph_tree = et.parse(filepath)
@@ -91,12 +91,12 @@ def build(filepath_pair: Tuple[Path, Path]) -> Problem:
 	Parameters
 	----------
 	filepath_pair : Tuple[Path, Path]
-		A pair of filepaths pointing to the `*.tsk` and `*.cfg` files.
+		A pair of `Path` pointing to the `*.tsk` and `*.cfg` files.
 
 	Returns
 	-------
 	Problem
-		A problem generated from the test case.
+		A `Problem` generated from the test case.
 	"""
 
 	graph = _import_graph(filepath_pair[0])
