@@ -11,7 +11,6 @@ flake8-docstrings = "*"
 
 [packages]
 ortools = "*"
-matplotlib = "*"
 setuptools = "*"
 tqdm = "*"
 recordclass = "*"
