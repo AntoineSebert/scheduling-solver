@@ -3,4 +3,4 @@
 # pipenv .lock file
 Pipfile.lock
 # python cache
-src/__pycache__
+__pycache__
