@@ -5,7 +5,6 @@
 
 
 from typing import Iterable, Tuple
-from weakref import ref
 from collections import namedtuple
 
 
@@ -104,14 +103,25 @@ Graph = Iterable[Chain]
 
 Attributes
 ----------
-name : str
-	The name of the problem, corresponding to the name of the `*.tsk` file used to generate it.
+filepaths : Filepaths
+	The `Filepaths` from which the problem has been generated.
 graph : Graph
 	A `Graph` containing task sequences.
 arch : Architecture
 	An `Architecture` containing a sequence of `Processor`.
 """
-Problem = namedtuple("Problem", ["name", "graph", "arch"])
+Problem = namedtuple("Problem", ["filepaths", "graph", "arch"])
 
 """A solution holding an hyperperiod as `int`, and an architecture as Architecture (should be: `ref(Architecture)`)."""
 Solution = Tuple[int, Architecture]
+
+"""Holds two filepaths to a `*.tsk` and a `*.cfg` file, representing a test case.
+
+Attributes
+----------
+tsk : Path
+	A `Path` to a `*.tsk` file.
+cfg : Path
+	A `Path` to a `*.cfg` file.
+"""
+Filepaths = namedtuple("Filepaths", ["tsk", "cfg"])

@@ -6,7 +6,6 @@
 
 from enum import Enum, unique
 from functools import partial
-from typing import Iterable, List
 from xml.etree.ElementTree import SubElement, tostring, Element
 from xml.dom.minidom import parseString
 from json import dumps

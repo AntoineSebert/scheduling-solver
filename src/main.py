@@ -21,7 +21,7 @@ import logging
 from pathlib import Path
 from argparse import ArgumentParser
 from time import process_time
-from typing import NoReturn, List, Tuple
+from typing import List, Tuple
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from tqdm import tqdm
@@ -30,6 +30,7 @@ from log import colored_handler
 from solver import solve
 from builder import build
 from formatter import OutputFormat
+from datatypes import Filepaths
 
 
 # FUNCTIONS ###########################################################################################################
@@ -103,7 +104,7 @@ def _create_cli_parser() -> ArgumentParser:
 	return _add_dataset_arggroup(parser)
 
 
-def _import_files_from_folder(folder_path: Path) -> Tuple[Path, Path]:
+def _import_files_from_folder(folder_path: Path) -> Filepaths:
 	"""Creates a filepath pair from a given folder.
 
 	Parameters
@@ -114,8 +115,8 @@ def _import_files_from_folder(folder_path: Path) -> Tuple[Path, Path]:
 
 	Returns
 	-------
-	Tuple[Path, Path]
-		A pair of `Path` pointing to the `*.tsk` and `*.cfg` files.
+	Filepaths
+		A `Filepaths` pointing to the `*.tsk` and `*.cfg` files.
 	"""
 
 	tsk = next(filter(Path.is_file, folder_path.glob('*.tsk')))
@@ -124,10 +125,10 @@ def _import_files_from_folder(folder_path: Path) -> Tuple[Path, Path]:
 	if tsk.stem != cfg.stem:
 		logging.warning("The names of the files mismatch: '" + tsk.stem + "' and '" + cfg.stem + "'")
 
-	return (tsk, cfg)
+	return Filepaths(tsk, cfg)
 
 
-def _get_filepath_pairs(folder_path: Path, recursive: bool = False) -> List[Tuple[Path, Path]]:
+def _get_filepath_pairs(folder_path: Path, recursive: bool = False) -> List[Filepaths]:
 	"""Gathers the filepath pairs from a given folder.
 
 	Parameters
@@ -140,8 +141,8 @@ def _get_filepath_pairs(folder_path: Path, recursive: bool = False) -> List[Tupl
 
 	Returns
 	-------
-	filepath_pairs : List[Tuple[Path, Path]]
-		A list of `Tuple[Path, Path]`, the first member to a `*.tsk` file, and the second to `*.cfg` file
+	filepath_pairs : List[Filepaths]
+		A list of `Filepaths`.
 	"""
 
 	filepath_pairs = list()
@@ -161,13 +162,13 @@ def _get_filepath_pairs(folder_path: Path, recursive: bool = False) -> List[Tupl
 	return filepath_pairs
 
 
-def _solve(filepath_pair: Tuple[str, str], format: OutputFormat, pbar: tqdm) -> str:
+def _solve(filepath_pair: Filepaths, format: OutputFormat, pbar: tqdm) -> str:
 	"""Handles a test case from building to solving and formatting.
 
 	Parameters
 	----------
-	filepath_pair : Tuple[str, str]
-		A pair of `Path` pointing to the `*.tsk` and `*.cfg` files.
+	filepath_pair : Filepaths
+		A `Filepaths` pointing to the `*.tsk` and `*.cfg` files.
 	format : OutputFormat
 		A member of `OutputFormat` to use to format the `Solution` of the `Problem`.
 	pbar : tqdm
@@ -178,6 +179,8 @@ def _solve(filepath_pair: Tuple[str, str], format: OutputFormat, pbar: tqdm) -> 
 	output : str
 		A `Solution` formatted as a `str` in the given format.
 	"""
+
+	responsability_chain = frozenset([build, solve, OutputFormat])
 
 	problem = build(filepath_pair)
 	pbar.update()
@@ -198,7 +201,7 @@ def main() -> int:
 	Returns
 	-------
 	int
-		Returns `0` if no error has been encountered, and an other value otherwise.
+		Returns `-1` if errors has been encountered, and a list of formatted `Solution` for the test cases otherwise.
 	"""
 
 	args = _create_cli_parser().parse_args()
@@ -210,17 +213,17 @@ def main() -> int:
 		raise FileNotFoundError("No matching files found. At least one *.tsk file and one *.cfg file are necessary.")
 
 	for filepath_pair in filepath_pairs:
-		logging.info("Files found:\n\t" + filepath_pair[0].name + "\n\t" + filepath_pair[1].name)
-
-	responsability_chain = frozenset([build, solve, OutputFormat])  # + printer from print
+		logging.info("Files found:\n\t" + filepath_pair.tsk.name + "\n\t" + filepath_pair.cfg.name)
 
 	with ThreadPoolExecutor(max_workers=len(filepath_pairs)) as executor, tqdm(total=len(filepath_pairs) * 3) as pbar:
 		futures = [executor.submit(_solve, filepath_pair, args.format[0], pbar) for filepath_pair in filepath_pairs]
 		results = [future.result() for future in as_completed(futures)]
 
-	logging.info("Total ellasped time: " + str(process_time()) + "s.")
+		logging.info("Total ellasped time: " + str(process_time()) + "s.")
 
-	return 0
+		return results
+
+	return -1
 
 
 if __name__ == "__main__":

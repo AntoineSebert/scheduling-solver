@@ -6,7 +6,6 @@
 from typing import NoReturn, Iterable, List, Tuple, Optional
 from concurrent.futures import ThreadPoolExecutor
 from queue import PriorityQueue, Empty
-from weakref import ref
 from itertools import groupby
 
 import logging
@@ -132,7 +131,7 @@ def _update_workload(problem: Problem):
 
 	with ThreadPoolExecutor(max_workers=len(problem.arch)) as executor:
 		futures = [executor.submit(_get_cpuload, problem.graph, cpu) for cpu in problem.arch]
-		problem = problem._replace(arch = [future.result() for future in futures])
+		problem = problem._replace(arch=[future.result() for future in futures])
 
 	return problem
 
@@ -168,7 +167,9 @@ def _color_graphs(problem: Problem) -> List[Tuple[int, Tuple[int, int]]]:
 					problem.graph[chain_id].tasks[node.id] = node._replace(core_id=core[1])
 					problem.arch[node.cpu_id].workload[1].put_nowait(core)
 					# reschedule cpu
-					problem.arch[problem.graph[chain_id].tasks[node.id].cpu_id] = _get_cpuload(problem.graph, problem.arch[node.cpu_id])
+					problem.arch[
+						problem.graph[chain_id].tasks[node.id].cpu_id
+					] = _get_cpuload(problem.graph, problem.arch[node.cpu_id])
 				except Empty:
 					pass
 				chain_pq.put_nowait((_chain_stress(problem.graph[chain_id]), chain_id))
@@ -292,9 +293,9 @@ def solve(problem: Problem) -> Solution:
 	logging.info("Theoretical shortest scheduling time:\t" + str(_shortest_theoretical_scheduling(problem.graph)) + "ms.")
 
 	problem = _color_graphs(problem)
-	logging.info("Coloration found for" + problem.name)
+	logging.info("Coloration found for" + str(problem.filepaths))
 
 	solution = _generate_solution(problem)
-	logging.info("Solution found for" + problem.name)
+	logging.info("Solution found for" + str(problem.filepaths))
 
 	return solution

@@ -6,10 +6,9 @@
 
 import logging
 from pathlib import Path
-from typing import Tuple
 import xml.etree.ElementTree as et
 
-from datatypes import Architecture, Problem, Processor, Core, Node, Chain, Graph
+from datatypes import Architecture, Problem, Processor, Core, Node, Chain, Graph, Filepaths
 from timed import timed_callable
 
 
@@ -85,13 +84,13 @@ def _import_graph(filepath: Path) -> Graph:
 
 
 @timed_callable("Building the problem...")
-def build(filepath_pair: Tuple[Path, Path]) -> Problem:
+def build(filepath_pair: Filepaths) -> Problem:
 	"""Creates an internal representation for a problem.
 
 	Parameters
 	----------
-	filepath_pair : Tuple[Path, Path]
-		A pair of `Path` pointing to the `*.tsk` and `*.cfg` files.
+	filepath_pair : Filepaths
+		A `Filepaths` pointing to the `*.tsk` and `*.cfg` files.
 
 	Returns
 	-------
@@ -99,10 +98,10 @@ def build(filepath_pair: Tuple[Path, Path]) -> Problem:
 		A `Problem` generated from the test case.
 	"""
 
-	graph = _import_graph(filepath_pair[0])
-	logging.info("Imported graphs from " + filepath_pair[0].name)
+	graph = _import_graph(filepath_pair.tsk)
+	logging.info("Imported graphs from " + filepath_pair.tsk.name)
 
-	arch = _import_arch(filepath_pair[1])
-	logging.info("Imported architecture from " + filepath_pair[1].name)
+	arch = _import_arch(filepath_pair.cfg)
+	logging.info("Imported architecture from " + filepath_pair.cfg.name)
 
-	return Problem(str(filepath_pair[0]), graph, arch)
+	return Problem(filepath_pair, graph, arch)
