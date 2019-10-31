@@ -180,14 +180,11 @@ def _solve(filepath_pair: Filepaths, format: OutputFormat, pbar: tqdm) -> str:
 		A `Solution` formatted as a `str` in the given format.
 	"""
 
-	responsability_chain = frozenset([build, solve, OutputFormat])
+	output = filepath_pair
 
-	problem = build(filepath_pair)
-	pbar.update()
-	solution = solve(problem)
-	pbar.update()
-	output = OutputFormat[format](solution)
-	pbar.update()
+	for function in [build, solve, OutputFormat[format]]:
+		output = function(output)
+		pbar.update()
 
 	return output
 
