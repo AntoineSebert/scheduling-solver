@@ -158,24 +158,19 @@ def _color_graphs(problem: Problem) -> List[Tuple[int, Tuple[int, int]]]:
 	while not chain_pq.empty():
 		# get first item of chain_pq
 		chain_id = chain_pq.get_nowait()[1]
-		# get first item of process list without core
-		#print("node:", [node for node in problem.graph[chain_id].tasks if node.core_id is None][0])
-		node = [node for node in problem.graph[chain_id].tasks if node.core_id is None][0]
-		#for node in [node for node in problem.graph[chain_id].tasks if node.core_id is None]:
-		# get first core from proc_workload with the same processor
-		try:
-			# add process to it
-			core = problem.arch[node.cpu_id].workload[1].get_nowait()
-			problem.graph[chain_id].tasks[node.id] = node._replace(core_id=core[1])
-			problem.arch[node.cpu_id].workload[1].put_nowait(core)
-			# reschedule cpu
-			problem.arch[problem.graph[chain_id].tasks[node.id].cpu_id] = _get_cpuload(problem.graph, problem.arch[node.cpu_id])
-		except Empty:
-			pass
-
-		# if at least one node not scheduled, put chain back in chain_pq
+		# check if there are unscheduled cores
 		for node in problem.graph[chain_id].tasks:
 			if node.core_id is None:
+				# get first core from proc_workload with the same processor
+				try:
+					# add process to it
+					core = problem.arch[node.cpu_id].workload[1].get_nowait()
+					problem.graph[chain_id].tasks[node.id] = node._replace(core_id=core[1])
+					problem.arch[node.cpu_id].workload[1].put_nowait(core)
+					# reschedule cpu
+					problem.arch[problem.graph[chain_id].tasks[node.id].cpu_id] = _get_cpuload(problem.graph, problem.arch[node.cpu_id])
+				except Empty:
+					pass
 				chain_pq.put_nowait((_chain_stress(problem.graph[chain_id]), chain_id))
 				break
 
