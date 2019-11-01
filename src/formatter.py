@@ -10,7 +10,7 @@ from xml.etree.ElementTree import SubElement, tostring, Element
 from xml.dom.minidom import parseString
 from json import dumps
 
-from datatypes import Solution
+from datatypes import Solution, PriorityQueueEncoder
 from timed import timed_callable
 
 
@@ -32,7 +32,7 @@ def _json_format(solution: Solution) -> str:
 		A `str` representing a JSON `Solution`.
 	"""
 
-	return dumps(solution, sort_keys=True, indent=4)
+	return dumps(solution, skipkeys=True, sort_keys=True, indent=4, cls=PriorityQueueEncoder)
 
 
 @timed_callable("Formatting the solutions to XML...")
@@ -51,15 +51,15 @@ def _xml_format(solution: Solution) -> str:
 	"""
 
 	tables = Element("Tables")
-	for key, val in solution.items():
-		for i, tasklist in enumerate(val):
-			schedule = SubElement(tables, "Schedule", {"CpuId": str(key), "CoreId": str(i)})
+	for cpu in solution[1]:
+		for core in cpu.cores:
+			schedule = SubElement(tables, "Schedule", {"CpuId": str(cpu.id), "CoreId": str(core.id)})
 			schedule.extend(
 				[Element("Slice", {
-					"TaskId": _slice.task,
-					"Start": str(_slice.start),
-					"Duration": str(_slice.end - _slice.start)
-				}) for _slice in tasklist]
+					"TaskId": slice.task,
+					"Start": str(slice.start),
+					"Duration": str(slice.end - slice.start)
+				}) for slice in core.slices]
 			)
 
 	return parseString(tostring(tables)).toprettyxml()

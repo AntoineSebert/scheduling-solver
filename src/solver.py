@@ -7,6 +7,7 @@ from typing import NoReturn, Iterable, List, Tuple, Optional
 from concurrent.futures import ThreadPoolExecutor
 from queue import PriorityQueue, Empty
 from itertools import groupby
+from fractions import Fraction
 
 import logging
 from timed import timed_callable
@@ -17,7 +18,7 @@ from rate_monotonic import workload
 # FUNCTIONS ###########################################################################################################
 
 
-def _chain_stress(chain: Chain) -> float:
+def _chain_stress(chain: Chain) -> Fraction:
 	"""Computes the stress ratio for a chain.
 	The lower that number is, the more the chain is stressed (in PriorityQueue, lowest entries are retrieved first).
 
@@ -28,14 +29,14 @@ def _chain_stress(chain: Chain) -> float:
 
 	Returns
 	-------
-	float
+	Fraction
 		The stress level for the chain.
 	"""
 
 	unassigned_tasks_duration = sum([node.wcet for node in chain.tasks if node.core_id == -1])
 	stress = (chain.budget - sum([node.wcet for node in chain.tasks if node.core_id != -1]))
 
-	return stress / unassigned_tasks_duration if 0 < unassigned_tasks_duration else stress
+	return Fraction(stress, unassigned_tasks_duration) if 0 < unassigned_tasks_duration else stress
 
 
 def _get_processes_for_core(graph: Graph, core: Tuple[int, int]) -> Optional[Iterable[Node]]:
@@ -293,9 +294,9 @@ def solve(problem: Problem) -> Solution:
 	logging.info("Theoretical shortest scheduling time:\t" + str(_shortest_theoretical_scheduling(problem.graph)) + "ms.")
 
 	problem = _color_graphs(problem)
-	logging.info("Coloration found for" + str(problem.filepaths))
+	logging.info("Coloration found for:\t" + str(problem.filepaths))
 
 	solution = _generate_solution(problem)
-	logging.info("Solution found for" + str(problem.filepaths))
+	logging.info("Solution found for:\t" + str(problem.filepaths))
 
 	return solution

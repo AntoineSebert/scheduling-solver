@@ -6,6 +6,8 @@
 
 from typing import Iterable, Tuple
 from collections import namedtuple
+from json import JSONEncoder
+from queue import PriorityQueue
 
 
 # TYPE ALIASES ########################################################################################################
@@ -31,7 +33,7 @@ id : int
 	The core id within a `Processor`.
 macrotick : Optional[int]
 	The macrotick of the core.
-workload : float (0.0 by default)
+workload : Fraction
 	The workload carried by the `Node` objects in `slices`.
 slices : Iterable[Slice] (can be empty)
 	The execution slices of the `Node` objects scheduled on this core.
@@ -44,7 +46,7 @@ Attributes
 ----------
 id : int
 	The processor within an `Architecture`.
-workload : Tuple[float, PriorityQueue] (PriorityQueue contains core ids, should be: ref(core))
+workload : Tuple[Fraction, PriorityQueue] (PriorityQueue contains core ids, should be: ref(core))
 	A tuple containing the workload carried by the eventual `Node` objects scheduled on the cores of this processor,
 	and a priority queue of `Core` ids by ascending order of workload.
 cores : Iterable[Core]
@@ -125,3 +127,19 @@ cfg : Path
 	A `Path` to a `*.cfg` file.
 """
 Filepaths = namedtuple("Filepaths", ["tsk", "cfg"])
+
+
+class PriorityQueueEncoder(JSONEncoder):
+	"""Configures the logger.
+
+	Methods
+	-------
+	default(obj)
+		Formats and prints a `LoggerRecord` parameter, depending on the verbosity level.
+	"""
+
+	def default(self, obj):
+		if isinstance(obj, PriorityQueue):
+			return [obj.qsize(), obj.empty()]
+		# Let the base class default method raise the TypeError
+		return JSONEncoder.default(self, obj)
