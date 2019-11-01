@@ -21,7 +21,7 @@ import logging
 from pathlib import Path
 from argparse import ArgumentParser
 from time import process_time
-from typing import List, Tuple, TypeVar, Callable
+from typing import List, TypeVar, Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from tqdm import tqdm
@@ -162,9 +162,9 @@ def _get_filepath_pairs(folder_path: Path, recursive: bool = False) -> List[File
 	return filepath_pairs
 
 
-T = TypeVar('T', Filepaths, Problem, Solution)
-U = TypeVar('U', Problem, Solution, str)
-def _solve(filepath_pair: Filepaths, pbar: tqdm, operations: List[Callable[[T], U]]) -> str:
+def _solve(filepath_pair: Filepaths, pbar: tqdm, operations: List[
+	Callable[[TypeVar('T', Filepaths, Problem, Solution)], TypeVar('U', Problem, Solution, str)]
+]) -> str:
 	"""Handles a test case from building to solving and formatting.
 
 	Parameters
@@ -216,7 +216,9 @@ def main() -> int:
 
 	operations = [build, solve, OutputFormat[args.format[0]]]
 
-	with ThreadPoolExecutor(max_workers=len(filepath_pairs)) as executor, tqdm(total=len(filepath_pairs) * len(operations)) as pbar:
+	with ThreadPoolExecutor(max_workers=len(filepath_pairs)) as executor,\
+		tqdm(total=len(filepath_pairs) * len(operations)) as pbar:
+
 		futures = [executor.submit(_solve, filepath_pair, pbar, operations) for filepath_pair in filepath_pairs]
 		results = [future.result() for future in as_completed(futures)]
 
