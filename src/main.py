@@ -21,7 +21,7 @@ import logging
 from pathlib import Path
 from argparse import ArgumentParser
 from time import process_time
-from typing import List, Tuple
+from typing import List, Tuple, TypeVar, Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from tqdm import tqdm
@@ -30,7 +30,7 @@ from log import colored_handler
 from solver import solve
 from builder import build
 from formatter import OutputFormat
-from datatypes import Filepaths
+from datatypes import Filepaths, Problem, Solution
 
 
 # FUNCTIONS ###########################################################################################################
@@ -162,7 +162,9 @@ def _get_filepath_pairs(folder_path: Path, recursive: bool = False) -> List[File
 	return filepath_pairs
 
 
-def _solve(filepath_pair: Filepaths, format: OutputFormat, pbar: tqdm) -> str:
+T = TypeVar('T', Filepaths, Problem, Solution)
+U = TypeVar('U', Problem, Solution, str)
+def _solve(filepath_pair: Filepaths, pbar: tqdm, operations: List[Callable[[T], U]]) -> str:
 	"""Handles a test case from building to solving and formatting.
 
 	Parameters
@@ -182,7 +184,7 @@ def _solve(filepath_pair: Filepaths, format: OutputFormat, pbar: tqdm) -> str:
 
 	output = filepath_pair
 
-	for function in [build, solve, OutputFormat[format]]:
+	for function in operations:
 		output = function(output)
 		pbar.update()
 
@@ -212,15 +214,17 @@ def main() -> int:
 	for filepath_pair in filepath_pairs:
 		logging.info("Files found:\n\t" + filepath_pair.tsk.name + "\n\t" + filepath_pair.cfg.name)
 
-	with ThreadPoolExecutor(max_workers=len(filepath_pairs)) as executor, tqdm(total=len(filepath_pairs) * 3) as pbar:
-		futures = [executor.submit(_solve, filepath_pair, args.format[0], pbar) for filepath_pair in filepath_pairs]
+	operations = [build, solve, OutputFormat[args.format[0]]]
+
+	with ThreadPoolExecutor(max_workers=len(filepath_pairs)) as executor, tqdm(total=len(filepath_pairs) * len(operations)) as pbar:
+		futures = [executor.submit(_solve, filepath_pair, pbar, operations) for filepath_pair in filepath_pairs]
 		results = [future.result() for future in as_completed(futures)]
 
 		logging.info("Total ellasped time: " + str(process_time()) + "s.")
 
-		return results
+		exit(results)
 
-	return -1
+	exit(-1)
 
 
 if __name__ == "__main__":
