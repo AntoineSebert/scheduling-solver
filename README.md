@@ -83,7 +83,7 @@ You can show the CLI usage with:
 
 ```bash
 $ python src/main.py --help
-usage: SOLVER [-h] [-f FORMAT] [--verbose] [--version] 
+usage: SOLVER [-h] [-f FORMAT] [--verbose] [--version]
               (--case FOLDER | --collection FOLDER)
 
 Solve task scheduling problems using graph coloration.
@@ -116,6 +116,13 @@ Solve all the test cases [data/100pct](data/100pct) with:
 ```bash
 $ python src/main.py --collection "data/100pct"
 ```
+
+Redirects the console output including the solution to a file:
+
+```bash
+$ python src/main.py --case "data/Case 1" 2> file.txt
+```
+*Note: If the file does not exist, it will be created.*
 
 ### Tests suite and style checks
 
@@ -198,7 +205,7 @@ Formatter -->|Fmt Solution| End(End)
 - [ ] preemption
 - [ ] benchmark : https://github.com/python/pyperformance
 - [ ] optimize : https://docs.python.org/3/library/collections.html, https://docs.python.org/3/library/stdtypes.html, https://stackoverflow.com/questions/45123238/python-class-vs-tuple-huge-memory-overhead/45123561
-- [ ] setup.py : https://setuptools.readthedocs.io/en/latest/pkg_resources.html
+- [ ] setup.py : https://setuptools.readthedocs.io/en/latest/pkg_resources.html, https://setuptools.readthedocs.io/en/latest/setuptools.html
 - [ ] cython : http://docs.cython.org/en/latest/src/quickstart/build.html, http://docs.cython.org/en/latest/
 
 ### This week - 05/11/2019
@@ -207,13 +214,10 @@ Formatter -->|Fmt Solution| End(End)
 - [ ] support Period, Deadline, Offset, MaxJitter
 - [ ] OR-tools
 - [ ] add references support to avoid data copy
-- [ ] repair pipeline
-- [ ] generate visual representation
-
-### 31/10/2019
-
 - [ ] workload update (static attrs in core and cpu, invalidated on modification)
+
+### 01/11/2019
+
 - [ ] replace named tuples by mutable equivalent : https://bitbucket.org/intellimath/recordclass/src/default/
-- [ ] investigate bug while processing [](data/300pct)
-- [ ] replace `float` by `Fraction`
-- [ ] change `Problem.name` to `Problem.filepair`
+- [ ] generate visual representation (SVG formatter)
+- [ ] repair pipeline
