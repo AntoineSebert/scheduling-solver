@@ -5,18 +5,18 @@
 
 import logging
 from logging import Handler
-from typing import NoReturn, TypeVar
+from typing import NoReturn, Any
 
 # CLASSES #############################################################################################################
 
 
 class Singleton(type):
-	"""A Singleton class, meant to be extended.
+	"""A singleton, meant to be extended.
 
 	Attributes
 	----------
-	_instances : Dict[__class__, Singleton]
-		Holds classes as keys and single class instances of all subclasses as values.
+	_instances : Dict[Any, Singleton]
+		Holds subclasses as keys and instances of said subclasses as values.
 
 	Methods
 	-------
@@ -26,7 +26,7 @@ class Singleton(type):
 
 	_instances = {}
 
-	def __call__(cls, *args, **kwargs) -> TypeVar('T'):
+	def __call__(cls, *args, **kwargs) -> Any:
 		"""Called when the instance is "called" as a function; if this method is defined, `x(arg1, arg2, ...)`
 		is a shorthand for `x.__call__(arg1, arg2, ...)`.
 
@@ -41,7 +41,7 @@ class Singleton(type):
 
 		Returns
 		-------
-		TypeVar('T')
+		Any
 			The single instance of the caller class.
 		"""
 
@@ -73,7 +73,7 @@ class colored_handler(Handler, metaclass=Singleton):
 	Methods
 	-------
 	__init__(self, verbose: bool = False)
-		Initializes the
+		Initializes the Handler.
 	emit(record)
 		Formats and prints a `LoggerRecord` parameter, depending on the verbosity level.
 	"""
