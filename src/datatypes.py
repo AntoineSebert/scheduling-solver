@@ -106,7 +106,7 @@ Graph = Iterable[Chain]
 Attributes
 ----------
 filepaths : Filepaths
-	The `Filepaths` from which the problem has been generated.
+	The `Filepaths` from which the `Problem` has been generated.
 graph : Graph
 	A `Graph` containing task sequences.
 arch : Architecture
@@ -114,8 +114,18 @@ arch : Architecture
 """
 Problem = namedtuple("Problem", ["filepaths", "graph", "arch"])
 
-"""A solution holding an hyperperiod as `int`, and an architecture as Architecture (should be: `ref(Architecture)`)."""
-Solution = Tuple[int, Architecture]
+"""A solution holding an hyperperiod as `int`, and an architecture as Architecture (should be: `ref(Architecture)`).
+
+Attributes
+----------
+filepaths : Filepaths
+	The `Filepaths` from which the `Solution` has been generated.
+hyperperiod : int
+	The hyperperiod length for this `Solution`.
+arch : Architecture
+	An `Architecture` containing a sequence of `Processor`.
+"""
+Solution = namedtuple("Solution", ["filepaths", "hyperperiod", "arch"])
 
 """Holds two filepaths to a `*.tsk` and a `*.cfg` file, representing a test case.
 
@@ -130,12 +140,12 @@ Filepaths = namedtuple("Filepaths", ["tsk", "cfg"])
 
 
 class PriorityQueueEncoder(JSONEncoder):
-	"""Configures the logger.
+	"""An encoder dedicated to parse `PriorityQueue` objects into JSON.
 
 	Methods
 	-------
 	default(obj)
-		Formats and prints a `LoggerRecord` parameter, depending on the verbosity level.
+		Returns a list containing the size of the `PriorityQueue` and a boolean whether it is empty or not.
 	"""
 
 	def default(self, obj):

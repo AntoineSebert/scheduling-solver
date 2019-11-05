@@ -253,7 +253,7 @@ def _generate_solution(problem: Problem) -> Solution:
 		for chain in reversed(sorted(list(chain_group), key=lambda chain: len(chain))):
 			_schedule_chain(chain, problem.arch)
 
-	return (_hyperperiod_duration(problem.arch), problem.arch)
+	return Solution(problem.filepaths, _hyperperiod_duration(problem.arch), problem.arch)
 
 
 def _hyperperiod_duration(arch: Architecture) -> int:
