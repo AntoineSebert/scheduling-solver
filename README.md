@@ -201,23 +201,24 @@ Formatter -->|Fmt Solution| End(End)
 ### This month - 22/11/2019
 
 - [ ] catch all exceptions : https://docs.python.org/3/library/contextlib.html
-- [ ] write tests : https://docs.python.org/3/library/unittest.html
 - [ ] preemption
 - [ ] benchmark : https://github.com/python/pyperformance
 - [ ] optimize : https://docs.python.org/3/library/collections.html, https://docs.python.org/3/library/stdtypes.html, https://stackoverflow.com/questions/45123238/python-class-vs-tuple-huge-memory-overhead/45123561
 - [ ] setup.py : https://setuptools.readthedocs.io/en/latest/pkg_resources.html, https://setuptools.readthedocs.io/en/latest/setuptools.html
 - [ ] cython : http://docs.cython.org/en/latest/src/quickstart/build.html, http://docs.cython.org/en/latest/
+- [ ] write tests : https://docs.python.org/3/library/unittest.html
+- [ ] random problem generator
 
-### This week - 05/11/2019
+### This week - 12/11/2019
 
-- [ ] pqueue of nodes instead of chains
-- [ ] support Period, Deadline, Offset, MaxJitter
-- [ ] OR-tools
 - [ ] add references support to avoid data copy
 - [ ] workload update (static attrs in core and cpu, invalidated on modification)
+- [ ] repair pipeline
+- [ ] generate visual representation (SVG formatter)
 
-### 01/11/2019
+### 04/11/2019
 
 - [ ] replace named tuples by mutable equivalent : https://bitbucket.org/intellimath/recordclass/src/default/
-- [ ] generate visual representation (SVG formatter)
-- [ ] repair pipeline
+- [ ] bug with `-f xml`
+- [ ] OR-tools : get feasible solution, support Period, Deadline, Offset, MaxJitter
+- [ ] linux cluster for benchmarks
