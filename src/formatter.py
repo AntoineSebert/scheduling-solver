@@ -51,15 +51,13 @@ def _xml_format(solution: Solution) -> str:
 	"""
 
 	tables = Element("Tables")
-	for cpu in solution[1]:
+	for cpu in solution.arch:
 		for core in cpu.cores:
 			schedule = SubElement(tables, "Schedule", {"CpuId": str(cpu.id), "CoreId": str(core.id)})
 			schedule.extend(
-				[Element("Slice", {
-					"TaskId": slice.task,
-					"Start": str(slice.start),
-					"Duration": str(slice.end - slice.start)
-				}) for slice in core.slices]
+				Element("Slice", {
+					"TaskId": slice.task, "Start": str(slice.start), "Duration": str(slice.end - slice.start)
+				}) for slice in core.slices
 			)
 
 	return parseString(tostring(tables)).toprettyxml()

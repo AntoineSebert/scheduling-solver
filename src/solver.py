@@ -33,8 +33,8 @@ def _chain_stress(chain: Chain) -> Fraction:
 		The stress level for the chain.
 	"""
 
-	unassigned_tasks_duration = sum([node.wcet for node in chain.tasks if node.core_id == -1])
-	stress = (chain.budget - sum([node.wcet for node in chain.tasks if node.core_id != -1]))
+	unassigned_tasks_duration = sum(node.wcet for node in chain.tasks if node.core_id == -1)
+	stress = (chain.budget - sum(node.wcet for node in chain.tasks if node.core_id != -1))
 
 	return Fraction(stress, unassigned_tasks_duration) if 0 < unassigned_tasks_duration else stress
 
@@ -193,7 +193,7 @@ def _theoretical_scheduling_time(chain: Chain) -> int:
 		The theoretical shortest scheduling time for the chain.
 	"""
 
-	return sum([node.wcet for node in chain.tasks])
+	return sum(node.wcet for node in chain.tasks)
 
 
 def _shortest_theoretical_scheduling(graph: Graph) -> int:
@@ -210,7 +210,7 @@ def _shortest_theoretical_scheduling(graph: Graph) -> int:
 		The theoretical shortest scheduling time for the graph.
 	"""
 
-	return min([sum([node.wcet for node in chain.tasks]) for chain in graph])
+	return min(sum(node.wcet for node in chain.tasks) for chain in graph)
 
 
 def _schedule_chain(chain: Chain, arch: Architecture) -> NoReturn:
@@ -270,7 +270,7 @@ def _hyperperiod_duration(arch: Architecture) -> int:
 		The hyperperiod length for the solution.
 	"""
 
-	return max([core.slices[-1].end for cpu in arch for core in cpu.cores if core.slices])
+	return max(core.slices[-1].end for cpu in arch for core in cpu.cores if core.slices)
 
 
 # ENTRY POINT #########################################################################################################

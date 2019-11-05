@@ -40,9 +40,8 @@ Returns
 Fraction
 	The processor workload, computed from the periods and WCETs of all tasks.
 """
-workload: Callable[[Iterable[Node]], Fraction] = lambda tasks: sum(
-	[process_ratio(node) for node in tasks]
-) if tasks is not None else 0.0
+workload: Callable[[Iterable[Node]], Fraction] = lambda tasks:\
+	sum(process_ratio(node) for node in tasks) if tasks is not None else 0.0
 
 
 """Determine the sufficient condition for schedulability of a count of tasks.

@@ -89,7 +89,7 @@ def _create_cli_parser() -> ArgumentParser:
 		nargs=1,
 		default=['raw'],
 		choices=[member.name for member in OutputFormat],
-		help="Either one of " + ', '.join([member.name for member in OutputFormat]),
+		help="Either one of " + ', '.join(member.name for member in OutputFormat),
 		metavar="FORMAT",
 		dest="format"
 	)
@@ -155,7 +155,9 @@ def _get_filepath_pairs(folder_path: Path, recursive: bool = False) -> List[File
 	if recursive:
 		for subfolder in filter(lambda e: e.is_dir(), folder_path.iterdir()):
 			try:
-				[filepath_pairs.append(filepath) for filepath in _get_filepath_pairs(subfolder, True) if filepath]
+				for filepath in _get_filepath_pairs(subfolder, True):
+					if filepath:
+						filepath_pairs.append(filepath)
 			except StopIteration:
 				pass
 
