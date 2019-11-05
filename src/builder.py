@@ -8,7 +8,9 @@ import logging
 from pathlib import Path
 import xml.etree.ElementTree as et
 
-from datatypes import Architecture, Problem, Processor, Core, Node, Chain, Graph, Filepaths
+from ortools.sat.python.cp_model import CpModel
+
+from datatypes import Architecture, Problem, Processor, Core, Node, Graph, Filepaths
 from timed import timed_callable
 
 
@@ -37,7 +39,7 @@ def _import_arch(filepath: Path) -> Architecture:
 				0.0,
 				list()
 			) for core in cpu
-		]) for cpu in et.parse(filepath).findall("Cpu")
+		]) for cpu in et.parse(filepath).iter("Cpu")
 	]
 
 
@@ -52,32 +54,22 @@ def _import_graph(filepath: Path) -> Graph:
 	Returns
 	-------
 	Graph
-		An iterable of `Chain`.
+		An iterable of `Node`.
 	"""
 
-	graph_tree = et.parse(filepath)
-
-	graph = list()
-	for chain in graph_tree.iter("Chain"):
-		tasks = list()
-		for task in chain:
-			# get node attributes
-			attrs = graph_tree.findall("Graph/Node[@Name='" + task.get("Name") + "']")[0].attrib
-			# create node
-			tasks.append(Node(
-				len(tasks),
-				task.get("Name"),
-				int(attrs["WCET"]),
-				int(attrs["Period"]),
-				int(attrs["Deadline"]),
-				int(attrs["MaxJitter"]) if int(attrs["MaxJitter"]) != -1 else None,
-				int(attrs["Offset"]),
-				int(attrs["CpuId"]),
-				int(attrs["CoreId"]) if int(attrs["CoreId"]) != -1 else None,
-			))
-		graph.append(Chain(len(graph), int(chain.get("Budget")), int(chain.get("Priority")), tasks))
-
-	return graph
+	return [
+		Node(
+			i,
+			node.get("Name"),
+			int(node.get("WCET")),
+			int(node.get("Period")),
+			int(node.get("Deadline")),
+			int(node.get("MaxJitter")) if int(node.get("MaxJitter")) != -1 else None,
+			int(node.get("Offset")),
+			int(node.get("CpuId")),
+			int(node.get("CoreId")) if int(node.get("CoreId")) != -1 else None
+		) for i, node in enumerate(et.parse(filepath).iter("Node"))
+	]
 
 
 # ENTRY POINT #########################################################################################################

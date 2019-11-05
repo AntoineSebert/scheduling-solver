@@ -3,40 +3,18 @@
 
 # IMPORTS #############################################################################################################
 
-from typing import NoReturn, Iterable, List, Tuple, Optional
+from typing import Iterable, List, Tuple, Optional
 from concurrent.futures import ThreadPoolExecutor
-from queue import PriorityQueue, Empty
-from itertools import groupby
+from queue import PriorityQueue
 from fractions import Fraction
 
 import logging
 from timed import timed_callable
-from datatypes import Problem, Solution, Slice, Chain, Graph, Node, Processor, Architecture
+from datatypes import Problem, Solution, Slice, Graph, Node, Processor, Architecture
 from rate_monotonic import workload
 
 
 # FUNCTIONS ###########################################################################################################
-
-
-def _chain_stress(chain: Chain) -> Fraction:
-	"""Computes the stress ratio for a chain.
-	The lower that number is, the more the chain is stressed (in PriorityQueue, lowest entries are retrieved first).
-
-	Parameters
-	----------
-	chain : Chain
-		A sequence of tasks.
-
-	Returns
-	-------
-	Fraction
-		The stress level for the chain.
-	"""
-
-	unassigned_tasks_duration = sum(node.wcet for node in chain.tasks if node.core_id == -1)
-	stress = (chain.budget - sum(node.wcet for node in chain.tasks if node.core_id != -1))
-
-	return Fraction(stress, unassigned_tasks_duration) if 0 < unassigned_tasks_duration else stress
 
 
 def _get_processes_for_core(graph: Graph, core: Tuple[int, int]) -> Optional[Iterable[Node]]:
@@ -45,25 +23,18 @@ def _get_processes_for_core(graph: Graph, core: Tuple[int, int]) -> Optional[Ite
 	Parameters
 	----------
 	graph : Graph
-		An iterable of `Chain`.
+		An iterable of `Node`.
 	core : Tuple[int, int]
 		A core to look for in the processes' attributes, represented as a tuple.
 		The first member is the cpu id, the second the core id.
 
 	Returns
 	-------
-	processes : Optional[List[nodes]] (should be Iterable[ref(Node)])
-		A list of processes if there are any, or `None` otherwise.
+	Optional[List[nodes]] (should be Iterable[ref(Node)])
+		A list of processes if there are any.
 	"""
 
-	with ThreadPoolExecutor(max_workers=len(graph)) as executor:
-		futures = [executor.submit(
-			lambda chain, c: filter(lambda n: n.cpu_id == c[0] and n.core_id == c[1], chain.tasks), chain, core
-		) for chain in graph]
-
-	processes = [node for future in futures if future.result() for node in future.result()]
-
-	return processes if processes else None
+	return [node for node in graph if node.cpu_id == core[0] and node.core_id == core[1]]
 
 
 def _get_cpuload(graph: Graph, cpu: Processor) -> Processor:
@@ -92,8 +63,25 @@ def _get_cpuload(graph: Graph, cpu: Processor) -> Processor:
 	return cpu._replace(workload=(workload_sum, pqueue))
 
 
-def _create_chain_pqueue(graph: Graph) -> PriorityQueue:
-	"""Creates a priority queue for all chains in the problem, depending on the chain stress.
+def _node_stress(node: Node) -> Fraction:
+	"""Computes the stress ratio for a node
+
+	Parameters
+	----------
+	node: Node
+		A `Node`.
+
+	Returns
+	-------
+	Fraction
+		The stress level for the `Node`.
+	"""
+
+	return Fraction(node.period - node.offset, node.wcet)
+
+
+def _create_node_pqueue(graph: Graph, cpu_id: bool = True) -> PriorityQueue:
+	"""Creates a priority queue for all nodes in the problem, depending on the node stress.
 
 	Parameters
 	----------
@@ -102,18 +90,21 @@ def _create_chain_pqueue(graph: Graph) -> PriorityQueue:
 
 	Returns
 	-------
-	chain_pqueue : PriorityQueue
-		A `PriorityQueue` containing tuples of chain stress and chain id.
+	node_pqueue : PriorityQueue
+		A `PriorityQueue` containing tuples of node stress and node id.
 	"""
 
-	chain_pqueue = PriorityQueue(maxsize=len(graph))
-	with ThreadPoolExecutor(max_workers=len(graph)) as executor:
-		futures = {chain.id: executor.submit(_chain_stress, chain) for chain in graph}
+	node_pqueue = PriorityQueue(maxsize=len(graph))
 
-	for chain_id, future in futures.items():
-		chain_pqueue.put((future.result(), chain_id))
+	if cpu_id:
+		for node in graph:
+			if node.core_id is None:
+				node_pqueue.put((_node_stress(node), node.id))
+	else:
+		for node in graph:
+			node_pqueue.put((_node_stress(node), node.id))
 
-	return chain_pqueue
+	return node_pqueue
 
 
 def _update_workload(problem: Problem):
@@ -151,86 +142,24 @@ def _color_graphs(problem: Problem) -> List[Tuple[int, Tuple[int, int]]]:
 		The colored `Problem`. The `core_id` attribute of all `Node` objects in `problem.graph` is assigned.
 	"""
 
-	chain_pq = _create_chain_pqueue(problem.graph)
+	node_pq = _create_node_pqueue(problem.graph)
 	problem = _update_workload(problem)
 
-	# while chain_pq not empty
-	while not chain_pq.empty():
-		# get first item of chain_pq
-		chain_id = chain_pq.get_nowait()[1]
-		# check if there are unscheduled cores
-		for node in problem.graph[chain_id].tasks:
-			if node.core_id is None:
-				# get first core from proc_workload with the same processor
-				try:
-					# add process to it
-					core = problem.arch[node.cpu_id].workload[1].get_nowait()
-					problem.graph[chain_id].tasks[node.id] = node._replace(core_id=core[1])
-					problem.arch[node.cpu_id].workload[1].put_nowait(core)
-					# reschedule cpu
-					problem.arch[
-						problem.graph[chain_id].tasks[node.id].cpu_id
-					] = _get_cpuload(problem.graph, problem.arch[node.cpu_id])
-				except Empty:
-					pass
-				chain_pq.put_nowait((_chain_stress(problem.graph[chain_id]), chain_id))
-				break
+	assert(not node_pq.empty())
+
+	# while node_pq not empty
+	while not node_pq.empty():
+		# get first item of node_pq
+		node_id = node_pq.get_nowait()[1]
+		node = problem.graph[node_id]
+		# add first core to it
+		core = problem.arch[node.cpu_id].workload[1].get_nowait()
+		problem.graph[node.id] = node._replace(core_id=core[1])
+		problem.arch[node.cpu_id].workload[1].put_nowait(core)
+		# reschedule cpu
+		problem.arch[problem.graph[node_id].cpu_id] = _get_cpuload(problem.graph, problem.arch[node.cpu_id])
 
 	return problem
-
-
-def _theoretical_scheduling_time(chain: Chain) -> int:
-	"""Computes the theoretical scheduling time of a sequence of tasks.
-
-	Parameters
-	----------
-	chain : Chain
-		A `Chain`.
-
-	Returns
-	-------
-	int
-		The theoretical shortest scheduling time for the chain.
-	"""
-
-	return sum(node.wcet for node in chain.tasks)
-
-
-def _shortest_theoretical_scheduling(graph: Graph) -> int:
-	"""Computes the shortest theoretical scheduling time from the longest scheduling path of all chain.
-
-	Parameters
-	----------
-	graph : Graph
-		A `Graph`.
-
-	Returns
-	-------
-	int
-		The theoretical shortest scheduling time for the graph.
-	"""
-
-	return min(sum(node.wcet for node in chain.tasks) for chain in graph)
-
-
-def _schedule_chain(chain: Chain, arch: Architecture) -> NoReturn:
-	"""Schedules the tasks from a chain on the cores they have been assigned.
-
-	Parameters
-	----------
-	chain : Chain
-		A `Chain` to schedule.
-	arch : Architecture
-		A `Architecture` where to schedule the tasks of the chain.
-	"""
-
-	# for each process in chain
-	for node in chain.tasks:
-		# assign time slice for each process
-		slices = arch[node.cpu_id].cores[node.core_id].slices
-		# add it to corresponding core, at the end of the list
-		start = 0 if not slices else slices[-1].end
-		slices.append(Slice(task=(chain.id, node.id), start=start, end=start + node.wcet))
 
 
 def _generate_solution(problem: Problem) -> Solution:
@@ -247,11 +176,16 @@ def _generate_solution(problem: Problem) -> Solution:
 		A `Solution`.
 	"""
 
-	# group graphs by desc priority level
-	for keyvalue, chain_group in groupby(problem.graph, lambda chain: chain.priority):
-		# for each priority level, sort by descending chain length
-		for chain in reversed(sorted(list(chain_group), key=lambda chain: len(chain))):
-			_schedule_chain(chain, problem.arch)
+	node_pq = _create_node_pqueue(problem.graph, False)
+
+	while not node_pq.empty():
+		node_id = node_pq.get_nowait()[1]
+		node = problem.graph[node_id]
+		# assign time slice for each process
+		slices = problem.arch[node.cpu_id].cores[node.core_id].slices
+		# add it to corresponding core, at the end of the list
+		start = 0 if not slices else slices[-1].end
+		problem.arch[node.cpu_id].cores[node.core_id].slices.append(Slice(node.id, start, start + node.wcet))
 
 	return Solution(problem.filepaths, _hyperperiod_duration(problem.arch), problem.arch)
 
@@ -291,7 +225,7 @@ def solve(problem: Problem) -> Solution:
 		A solution for the problem.
 	"""
 
-	logging.info("Theoretical shortest scheduling time:\t" + str(_shortest_theoretical_scheduling(problem.graph)) + "ms.")
+	# SOLVE MODEL
 
 	problem = _color_graphs(problem)
 	logging.info("Coloration found for:\t" + str(problem.filepaths))

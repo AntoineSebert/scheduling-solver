@@ -4,7 +4,7 @@
 # IMPORTS #############################################################################################################
 
 
-from typing import Iterable, Tuple
+from typing import Iterable
 from collections import namedtuple
 from json import JSONEncoder
 from queue import PriorityQueue
@@ -16,16 +16,16 @@ from queue import PriorityQueue
 
 Attributes
 ----------
-task : Tuple[int, int] (should be: ref(Node))
+task_id : int (should be: ref(Node))
 	The reference to the task.
 start : int
 	The start time of the slice.
 end : int
 	The end time of the slice.
 """
-Slice = namedtuple('Slice', ['task', 'start', 'end'])
+Slice = namedtuple('Slice', ['task_id', 'start', 'end'])
 
-"""Named tuple representing a core within a processor.
+"""Named tuple representing a core.
 
 Attributes
 ----------
@@ -40,7 +40,7 @@ slices : Iterable[Slice] (can be empty)
 """
 Core = namedtuple("Core", ["id", "macrotick", "workload", "slices"])
 
-"""Named tuple representing a processor within an architecture.
+"""Named tuple representing a processor.
 
 Attributes
 ----------
@@ -57,7 +57,7 @@ Processor = namedtuple('Processor', ["id", "workload", "cores"])
 """An iterable of `Processor` representing an `Architecture`."""
 Architecture = Iterable[Processor]
 
-"""A node representing a task within a chain.
+"""A node representing a task.
 
 Attributes
 ----------
@@ -82,26 +82,10 @@ core_id : Optional[int] (should be: Optional[ref(Core)])
 """
 Node = namedtuple("Node", ["id", "name", "wcet", "period", "deadline", "max_jitter", "offset", "cpu_id", "core_id"])
 
-"""A chain representing a task sequence within a graph.
+"""An iterable of `Node` representing a `Graph`."""
+Graph = Iterable[Node]
 
-Attributes
-----------
-id : int
-	The chain id within a `Graph`. (Note: not equivalent to the attribute <Chain/name>).
-budget : int
-	The bugdet of the chain. Cannot be `0`.
-priority : int (actually bool)
-	The priority of the Chain, either 0 (lower) or 1 (higher).
-	Represented as an integer to offer support for wider range of priority.
-tasks : Iterable[Node] (cannot be empty)
-	An iterable of `Node`, representing the tasks of the sequence.
-"""
-Chain = namedtuple("Chain", ["id", "budget", "priority", "tasks"])
-
-"""An iterable of `Chain` representing an `Graph`."""
-Graph = Iterable[Chain]
-
-"""A problem holding a graph and an architecture.
+"""A problem holding a `Filepaths`, a `Graph`, an architecture.
 
 Attributes
 ----------
