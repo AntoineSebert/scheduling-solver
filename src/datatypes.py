@@ -4,10 +4,12 @@
 # IMPORTS #############################################################################################################
 
 
-from typing import Iterable
+from dataclasses import dataclass, field
+from typing import Any, Iterable
 from collections import namedtuple
 from json import JSONEncoder
 from queue import PriorityQueue
+from fractions import Fraction
 
 
 # TYPE ALIASES ########################################################################################################
@@ -95,8 +97,10 @@ graph : Graph
 	A `Graph` containing task sequences.
 arch : Architecture
 	An `Architecture` containing a sequence of `Processor`.
+model : CpModel
+	A `CpModel` object that holds the variables and contraints. Meant to replace `graph` and `arch` in the future.
 """
-Problem = namedtuple("Problem", ["filepaths", "graph", "arch"])
+Problem = namedtuple("Problem", ["filepaths", "graph", "arch", "model"])
 
 """A solution holding an hyperperiod as `int`, and an architecture as Architecture (should be: `ref(Architecture)`).
 
@@ -137,3 +141,19 @@ class PriorityQueueEncoder(JSONEncoder):
 			return [obj.qsize(), obj.empty()]
 		# Let the base class default method raise the TypeError
 		return JSONEncoder.default(self, obj)
+
+@dataclass(order=True)
+class PrioritizedItem:
+	"""An encoder dedicated to parse `PriorityQueue` objects into JSON.
+
+	Attributes
+	----------
+	priority : Fraction
+		The prioroty of the element as a `Fraction`.
+	item : Any
+		The data carried by the element. This field is not taken into account for the prioritization.
+		(default: `field(compare=False)`)
+	"""
+
+	priority: Fraction
+	item: Any=field(compare=False)

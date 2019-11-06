@@ -10,7 +10,7 @@ from fractions import Fraction
 
 import logging
 from timed import timed_callable
-from datatypes import Problem, Solution, Slice, Graph, Node, Processor, Architecture
+from datatypes import Problem, Solution, Slice, Graph, Node, Processor, Architecture, PrioritizedItem
 from rate_monotonic import workload
 
 
@@ -58,7 +58,7 @@ def _get_cpuload(graph: Graph, cpu: Processor) -> Processor:
 	for core in cpu.cores:
 		core = core._replace(workload=workload(_get_processes_for_core(graph, (cpu.id, core.id))))
 		workload_sum += core.workload
-		pqueue.put((core.workload, core.id))
+		pqueue.put(PrioritizedItem(core.workload, core.id))
 
 	return cpu._replace(workload=(workload_sum, pqueue))
 
@@ -99,10 +99,10 @@ def _create_node_pqueue(graph: Graph, cpu_id: bool = True) -> PriorityQueue:
 	if cpu_id:
 		for node in graph:
 			if node.core_id is None:
-				node_pqueue.put((_node_stress(node), node.id))
+				node_pqueue.put(PrioritizedItem(_node_stress(node), node.id))
 	else:
 		for node in graph:
-			node_pqueue.put((_node_stress(node), node.id))
+			node_pqueue.put(PrioritizedItem(_node_stress(node), node.id))
 
 	return node_pqueue
 
@@ -150,11 +150,11 @@ def _color_graphs(problem: Problem) -> List[Tuple[int, Tuple[int, int]]]:
 	# while node_pq not empty
 	while not node_pq.empty():
 		# get first item of node_pq
-		node_id = node_pq.get_nowait()[1]
+		node_id = node_pq.get_nowait().item
 		node = problem.graph[node_id]
 		# add first core to it
 		core = problem.arch[node.cpu_id].workload[1].get_nowait()
-		problem.graph[node.id] = node._replace(core_id=core[1])
+		problem.graph[node.id] = node._replace(core_id=core.item)
 		problem.arch[node.cpu_id].workload[1].put_nowait(core)
 		# reschedule cpu
 		problem.arch[problem.graph[node_id].cpu_id] = _get_cpuload(problem.graph, problem.arch[node.cpu_id])
@@ -179,7 +179,7 @@ def _generate_solution(problem: Problem) -> Solution:
 	node_pq = _create_node_pqueue(problem.graph, False)
 
 	while not node_pq.empty():
-		node_id = node_pq.get_nowait()[1]
+		node_id = node_pq.get_nowait().item
 		node = problem.graph[node_id]
 		# assign time slice for each process
 		slices = problem.arch[node.cpu_id].cores[node.core_id].slices
