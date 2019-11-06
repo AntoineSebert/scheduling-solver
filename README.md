@@ -177,7 +177,7 @@ Formatter -->|Fmt Solution| End(End)
   |  +--builder.py				// problem builder
   |  +--datatypes.py			// structured data
   |  +--draw.py					// problem & solution painter
-  |  +--formatter.py			// solution formatter
+  |  +--format.py				// solution formatter
   |  +--log.py					// logging handler
   |  +--main.py					// entry point
   |  +--rate_monotonic.py		// rate monotonic -related utilities
@@ -211,11 +211,10 @@ Formatter -->|Fmt Solution| End(End)
 
 - [ ] add references support to avoid data copy
 - [ ] workload update (static attrs in core and cpu, invalidated on modification)
-- [ ] repair pipeline
 - [ ] generate visual representation (SVG formatter)
 
-### 04/11/2019
+### 06/11/2019
 
 - [ ] replace named tuples by mutable equivalent : https://bitbucket.org/intellimath/recordclass/src/default/
-- [ ] OR-tools : get feasible solution, support Period, Deadline, Offset, MaxJitter
+- [ ] OR-tools : get feasible solution + support Period, Deadline, Offset, MaxJitter
 - [ ] linux cluster for benchmarks

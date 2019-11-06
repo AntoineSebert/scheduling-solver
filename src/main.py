@@ -3,7 +3,8 @@
 
 """
 Resources
-- https://numpydoc.readthedocs.io/en/latest/format.html
+	https://numpydoc.readthedocs.io/en/latest/format.html
+	http://dtu.cnwiki.dk/02229/page/4390/evaluating-metaheuristics
 
 Static analysis
 	tests :			https://github.com/pytest-dev/pytest
@@ -12,6 +13,12 @@ Runtime analysis
 	https://github.com/nedbat/coveragepy
 	https://github.com/agermanidis/livepython
 	https://github.com/benfred/py-spy
+
+OR-Tools
+	https://developers.google.com/optimization/cp/cp_solver
+	https://developers.google.com/optimization/scheduling/job_shop
+	https://github.com/google/or-tools/blob/master/examples/python/jobshop_ft06_sat.py
+	https://developers.google.com/optimization/reference/python/sat/python/cp_model
 """
 
 # IMPORTS #############################################################################################################
