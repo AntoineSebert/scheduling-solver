@@ -5,126 +5,173 @@
 
 
 from dataclasses import dataclass, field
-from typing import Any, Iterable
-from collections import namedtuple
-from json import JSONEncoder
-from queue import PriorityQueue
 from fractions import Fraction
+from json import JSONEncoder
+from pathlib import Path
+from queue import PriorityQueue
+from typing import Any, Iterable, NamedTuple, Optional
+
+from ortools.sat.python.cp_model import CpModel
+
+from recordclass import RecordClass
 
 
 # TYPE ALIASES ########################################################################################################
 
-"""Named tuple representing an execution slice of a task.
 
-Attributes
-----------
-task_id : int (should be: ref(Node))
-	The reference to the task.
-start : int
-	The start time of the slice.
-end : int
-	The end time of the slice.
-"""
-Slice = namedtuple('Slice', ['task_id', 'start', 'end'])
+class Slice(RecordClass):
+	"""Named tuple representing an execution slice of a task.
 
-"""Named tuple representing a core.
+	Attributes
+	----------
+	task_id : int (should be: ref(Node))
+		The reference to the task.
+	start : int
+		The start time of the slice.
+	end : int
+		The end time of the slice.
+	"""
 
-Attributes
-----------
-id : int
-	The core id within a `Processor`.
-macrotick : Optional[int]
-	The macrotick of the core.
-workload : Fraction
-	The workload carried by the `Node` objects in `slices`.
-slices : Iterable[Slice] (can be empty)
-	The execution slices of the `Node` objects scheduled on this core.
-"""
-Core = namedtuple("Core", ["id", "macrotick", "workload", "slices"])
+	task_id: int
+	start: int
+	end: int
 
-"""Named tuple representing a processor.
 
-Attributes
-----------
-id : int
-	The processor within an `Architecture`.
-workload : Tuple[Fraction, PriorityQueue] (PriorityQueue contains core ids, should be: ref(core))
-	A tuple containing the workload carried by the eventual `Node` objects scheduled on the cores of this processor,
-	and a priority queue of `Core` ids by ascending order of workload.
-cores : Iterable[Core]
-	The iterable containing the `Core` objects within the Processor.
-"""
-Processor = namedtuple('Processor', ["id", "workload", "cores"])
+class Core(RecordClass):
+	"""Named tuple representing a core.
+
+	Attributes
+	----------
+	id : int
+		The core id within a `Processor`.
+	macrotick : Optional[int]
+		The macrotick of the core.
+	workload : Fraction
+		The workload carried by the `Node` objects in `slices`.
+	slices : Iterable[Slice] (can be empty)
+		The execution slices of the `Node` objects scheduled on this core.
+	"""
+
+	id: int
+	macrotick: Optional[int]
+	workload: Fraction
+	slices: Iterable[Slice]
+
+
+class Processor(RecordClass):
+	"""Named tuple representing a processor.
+
+	Attributes
+	----------
+	id : int
+		The processor within an `Architecture`.
+	workload : Tuple[Fraction, PriorityQueue] (PriorityQueue contains core ids, should be: ref(core))
+		A tuple containing the workload carried by the eventual `Node` objects scheduled on the cores of this processor,
+		and a priority queue of `Core` ids by ascending order of workload.
+	cores : Iterable[Core]
+		The iterable containing the `Core` objects within the Processor.
+	"""
+
+	id: int
+	workload: int
+	cores: Iterable[Core]
+
 
 """An iterable of `Processor` representing an `Architecture`."""
 Architecture = Iterable[Processor]
 
-"""A node representing a task.
 
-Attributes
-----------
-id : int
-	The node id within a `Chain`.
-name : str
-	The name of the node. May not be unique.
-wcet : int
-	The WCET of the node. Cannot be `0.0`.
-period : int
-	The period of the node. Cannot be `0.0`.
-deadline : int
-	The deadline of the node.
-max_jitter : Optional[int]
-	The eventual jitter of the node.
-offset : int
-	The start offset of the node.
-cpu_id : int (should be: ref(Processor))
-	A `Processor` the node is scheduled on. Cannot be None.
-core_id : Optional[int] (should be: Optional[ref(Core)])
-	A `Core` within a `Processor` the node is scheduled on.
-"""
-Node = namedtuple("Node", ["id", "name", "wcet", "period", "deadline", "max_jitter", "offset", "cpu_id", "core_id"])
+class Node(RecordClass):
+	"""A node representing a task.
+
+	Attributes
+	----------
+	id : int
+		The node id within a `Chain`.
+	name : str
+		The name of the node. May not be unique.
+	wcet : int
+		The WCET of the node. Cannot be `0.0`.
+	period : int
+		The period of the node. Cannot be `0.0`.
+	deadline : int
+		The deadline of the node.
+	max_jitter : Optional[int]
+		The eventual jitter of the node.
+	offset : int
+		The start offset of the node.
+	cpu_id : int (should be: ref(Processor))
+		A `Processor` the node is scheduled on. Cannot be None.
+	core_id : Optional[int] (should be: Optional[ref(Core)])
+		A `Core` within a `Processor` the node is scheduled on.
+	"""
+
+	id: int
+	wcet: int
+	period: int
+	deadline: int
+	max_jitter: Optional[int]
+	offset: int
+	cpu_id: int
+	core_id: Optional[int]
+
 
 """An iterable of `Node` representing a `Graph`."""
 Graph = Iterable[Node]
 
-"""A problem holding a `Filepaths`, a `Graph`, an architecture.
 
-Attributes
-----------
-filepaths : Filepaths
-	The `Filepaths` from which the `Problem` has been generated.
-graph : Graph
-	A `Graph` containing task sequences.
-arch : Architecture
-	An `Architecture` containing a sequence of `Processor`.
-model : CpModel
-	A `CpModel` object that holds the variables and contraints. Meant to replace `graph` and `arch` in the future.
-"""
-Problem = namedtuple("Problem", ["filepaths", "graph", "arch", "model"])
+class Filepath_pair(NamedTuple):
+	"""Holds a `Filepath_pair` to a `*.tsk` and a `*.cfg` file, representing a test case.
 
-"""A solution holding an hyperperiod as `int`, and an architecture as Architecture (should be: `ref(Architecture)`).
+	Attributes
+	----------
+	tsk : Path
+		A `Path` to a `*.tsk` file.
+	cfg : Path
+		A `Path` to a `*.cfg` file.
+	"""
 
-Attributes
-----------
-filepaths : Filepaths
-	The `Filepaths` from which the `Solution` has been generated.
-hyperperiod : int
-	The hyperperiod length for this `Solution`.
-arch : Architecture
-	An `Architecture` containing a sequence of `Processor`.
-"""
-Solution = namedtuple("Solution", ["filepaths", "hyperperiod", "arch"])
+	tsk: Path
+	cfg: Path
 
-"""Holds two filepaths to a `*.tsk` and a `*.cfg` file, representing a test case.
 
-Attributes
-----------
-tsk : Path
-	A `Path` to a `*.tsk` file.
-cfg : Path
-	A `Path` to a `*.cfg` file.
-"""
-Filepaths = namedtuple("Filepaths", ["tsk", "cfg"])
+class Problem(RecordClass):
+	"""A problem holding a `Filepath_pair`, a `Graph`, an architecture.
+
+	Attributes
+	----------
+	filepaths : Filepath_pair
+		The `Filepath_pair` from which the `Problem` has been generated.
+	graph : Graph
+		A `Graph` containing task sequences.
+	arch : Architecture
+		An `Architecture` containing a sequence of `Processor`.
+	model : CpModel
+		A `CpModel` object that holds the variables and contraints. Meant to replace `graph` and `arch` in the future.
+	"""
+
+	filepaths: Filepath_pair
+	graph: Graph
+	arch: Architecture
+	model: CpModel
+
+
+class Solution(RecordClass):
+	"""A solution holding an hyperperiod as `int`, and an architecture as Architecture (should be: `ref(Architecture)`).
+
+	Attributes
+	----------
+	filepaths : Filepath_pair
+		The `Filepath_pair` from which the `Solution` has been generated.
+	hyperperiod : int
+		The hyperperiod length for this `Solution`.
+	arch : Architecture
+		An `Architecture` containing a sequence of `Processor`.
+	"""
+
+	filepaths: Filepath_pair
+	hyperperiod: int
+	arch: Architecture
 
 
 class PriorityQueueEncoder(JSONEncoder):
