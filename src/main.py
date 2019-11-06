@@ -18,19 +18,23 @@ Runtime analysis
 
 
 import logging
-from pathlib import Path
 from argparse import ArgumentParser
-from time import process_time
-from typing import List, TypeVar, Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from pathlib import Path
+from time import process_time
+from typing import Callable, List, TypeVar
 
-from tqdm import tqdm
+from builder import build
+
+from datatypes import Filepath_pair, Problem, Solution
+
+from format import OutputFormat
 
 from log import colored_handler
+
 from solver import solve
-from builder import build
-from formatter import OutputFormat
-from datatypes import Filepaths, Problem, Solution
+
+from tqdm import tqdm
 
 
 # FUNCTIONS ###########################################################################################################
@@ -79,8 +83,8 @@ def _create_cli_parser() -> ArgumentParser:
 	"""
 
 	parser = ArgumentParser(
-		prog="SOLVER",
-		description="Solve task scheduling problems using graph coloration.",
+		prog="Scheduling Solver",
+		description="Solve task scheduling problems using constraint programming.",
 		allow_abbrev=True,
 	)
 

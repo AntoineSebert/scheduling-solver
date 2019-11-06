@@ -5,7 +5,7 @@
 
 
 from fractions import Fraction
-from typing import Iterable, Callable
+from typing import Callable, Iterable
 
 from datatypes import Node
 

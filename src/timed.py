@@ -4,9 +4,9 @@
 # IMPORTS #############################################################################################################
 
 import logging
-from typing import Any, Callable, Optional
-from time import perf_counter
 from functools import wraps
+from time import perf_counter
+from typing import Any, Callable, Optional
 
 
 # FUNCTIONS ###########################################################################################################

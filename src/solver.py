@@ -3,15 +3,17 @@
 
 # IMPORTS #############################################################################################################
 
-from typing import Iterable, List, Tuple, Optional
-from concurrent.futures import ThreadPoolExecutor
-from queue import PriorityQueue
-from fractions import Fraction
-
 import logging
-from timed import timed_callable
-from datatypes import Problem, Solution, Slice, Graph, Node, Processor, Architecture, PrioritizedItem
+from concurrent.futures import ThreadPoolExecutor
+from fractions import Fraction
+from queue import PriorityQueue
+from typing import Iterable, List, Optional, Tuple
+
+from datatypes import Architecture, Graph, Node, PrioritizedItem, Problem, Processor, Slice, Solution
+
 from rate_monotonic import workload
+
+from timed import timed_callable
 
 
 # FUNCTIONS ###########################################################################################################

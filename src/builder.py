@@ -5,12 +5,13 @@
 
 
 import logging
-from pathlib import Path
 import xml.etree.ElementTree as et
+from pathlib import Path
+
+from datatypes import Architecture, Core, Filepath_pair, Graph, Node, Problem, Processor
 
 from ortools.sat.python.cp_model import CpModel
 
-from datatypes import Architecture, Problem, Processor, Core, Node, Graph, Filepaths
 from timed import timed_callable
 
 
@@ -76,13 +77,13 @@ def _import_graph(filepath: Path) -> Graph:
 
 
 @timed_callable("Building the problem...")
-def build(filepath_pair: Filepaths) -> Problem:
+def build(filepath_pair: Filepath_pair) -> Problem:
 	"""Creates an internal representation for a problem.
 
 	Parameters
 	----------
-	filepath_pair : Filepaths
-		A `Filepaths` pointing to the `*.tsk` and `*.cfg` files.
+	filepath_pair : Filepath_pair
+		A `Filepath_pair` pointing to the `*.tsk` and `*.cfg` files.
 
 	Returns
 	-------
@@ -96,4 +97,18 @@ def build(filepath_pair: Filepaths) -> Problem:
 	arch = _import_arch(filepath_pair.cfg)
 	logging.info("Imported architecture from " + filepath_pair.cfg.name)
 
-	return Problem(filepath_pair, graph, arch)
+	model = CpModel()
+
+	# CREATE VARIABLES
+	"""
+	num_vals = 3
+	x = model.NewIntVar(0, num_vals - 1, 'x')
+	y = model.NewIntVar(0, num_vals - 1, 'y')
+	z = model.NewIntVar(0, num_vals - 1, 'z')
+	"""
+
+	# CREATE CONSTRAINTS : model.Add(x != y)
+
+	# ADD OBJECTIVE FUNCTION : model.Maximize(x + 2 * y + 3 * z)
+
+	return Problem(filepath_pair, graph, arch, model)

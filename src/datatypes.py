@@ -142,6 +142,7 @@ class PriorityQueueEncoder(JSONEncoder):
 		# Let the base class default method raise the TypeError
 		return JSONEncoder.default(self, obj)
 
+
 @dataclass(order=True)
 class PrioritizedItem:
 	"""An encoder dedicated to parse `PriorityQueue` objects into JSON.
@@ -156,4 +157,4 @@ class PrioritizedItem:
 	"""
 
 	priority: Fraction
-	item: Any=field(compare=False)
+	item: Any = field(compare=False)

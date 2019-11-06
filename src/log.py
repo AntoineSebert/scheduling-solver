@@ -5,7 +5,7 @@
 
 import logging
 from logging import Handler
-from typing import NoReturn, Any
+from typing import Any, NoReturn
 
 # CLASSES #############################################################################################################
 

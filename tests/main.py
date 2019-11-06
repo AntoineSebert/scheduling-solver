@@ -1,20 +1,23 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+
 # IMPORTS #############################################################################################################
 
-from fractions import Fraction
-import unittest
 
-from rate_monotonic import sufficient_condition
+import unittest
+from fractions import Fraction
+
+from rate_monotonic import processor_use, sufficient_condition
+
 
 # FUNCTIONS ###########################################################################################################
+
 
 class TestMethods(unittest.TestCase):
 
 	def test_main(self) -> bool:
 		return 0
-
 
 	def test_utilization(self) -> bool:
 		processes = [
@@ -24,9 +27,9 @@ class TestMethods(unittest.TestCase):
 		]
 		assert Fraction(29, 40) == processor_use(processes)
 
-
 	def test_sufficient_condition(self) -> bool:
 		assert sufficient_condition(3) == 0.7797631496846196
+
 
 if __name__ == '__main__':
 	unittest.main()

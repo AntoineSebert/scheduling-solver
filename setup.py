@@ -1,6 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 from distutils.core import setup as core_setup
+
 from Cython.Build import cythonize
-from setuptools import setup, find_packages
+
+from setuptools import find_packages, setup
 
 setup(
 	name="Scheduling Solver",
@@ -12,7 +17,7 @@ setup(
 	# installed or upgraded on the target machine
 	install_requires=['docutils>=0.3'],
 
-	python_requires="3.6",
+	python_requires="3.7",
 	package_dir={'': 'src'},
 	test_suite='your.module.tests',
 
