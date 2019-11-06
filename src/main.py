@@ -108,7 +108,7 @@ def _create_cli_parser() -> ArgumentParser:
 	return _add_dataset_arggroup(parser)
 
 
-def _import_files_from_folder(folder_path: Path) -> Filepaths:
+def _import_files_from_folder(folder_path: Path) -> Filepath_pair:
 	"""Creates a filepath pair from a given folder.
 
 	Parameters
@@ -119,8 +119,8 @@ def _import_files_from_folder(folder_path: Path) -> Filepaths:
 
 	Returns
 	-------
-	Filepaths
-		A `Filepaths` pointing to the `*.tsk` and `*.cfg` files.
+	Filepath_pair
+		A `Filepath_pair` pointing to the `*.tsk` and `*.cfg` files.
 	"""
 
 	tsk = next(filter(Path.is_file, folder_path.glob('*.tsk')))
@@ -129,10 +129,10 @@ def _import_files_from_folder(folder_path: Path) -> Filepaths:
 	if tsk.stem != cfg.stem:
 		logging.warning("The names of the files mismatch: '" + tsk.stem + "' and '" + cfg.stem + "'")
 
-	return Filepaths(tsk, cfg)
+	return Filepath_pair(tsk, cfg)
 
 
-def _get_filepath_pairs(folder_path: Path, recursive: bool = False) -> List[Filepaths]:
+def _get_filepath_pairs(folder_path: Path, recursive: bool = False) -> List[Filepath_pair]:
 	"""Gathers the filepath pairs from a given folder.
 
 	Parameters
@@ -145,8 +145,8 @@ def _get_filepath_pairs(folder_path: Path, recursive: bool = False) -> List[File
 
 	Returns
 	-------
-	filepath_pairs : List[Filepaths]
-		A list of `Filepaths`.
+	filepath_pairs : List[Filepath_pair]
+		A list of populated `Filepath_pair`.
 	"""
 
 	filepath_pairs = list()
@@ -168,15 +168,15 @@ def _get_filepath_pairs(folder_path: Path, recursive: bool = False) -> List[File
 	return filepath_pairs
 
 
-def _solve(filepath_pair: Filepaths, pbar: tqdm, operations: List[
-	Callable[[TypeVar('T', Filepaths, Problem, Solution)], TypeVar('U', Problem, Solution, str)]
+def _solve(filepath_pair: Filepath_pair, pbar: tqdm, operations: List[
+	Callable[[TypeVar('T', Filepath_pair, Problem, Solution)], TypeVar('U', Problem, Solution, str)]
 ]) -> str:
 	"""Handles a test case from building to solving and formatting.
 
 	Parameters
 	----------
-	filepath_pair : Filepaths
-		A `Filepaths` pointing to the `*.tsk` and `*.cfg` files.
+	filepath_pair : Filepath_pair
+		A `Filepath_pair` pointing to the `*.tsk` and `*.cfg` files.
 	format : OutputFormat
 		A member of `OutputFormat` to use to format the `Solution` of the `Problem`.
 	pbar : tqdm
