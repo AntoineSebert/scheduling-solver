@@ -38,8 +38,8 @@ def _import_arch(filepath: Path) -> Architecture:
 				int(core.get("MacroTick")) if int(core.get("MacroTick")) != 9999999 else None,
 				0.0,
 				list()
-			) for core in cpu
-		]) for cpu in et.parse(filepath).iter("Cpu")
+			) for core in sorted(cpu, key=lambda e: int(e.get("Id")))
+		]) for cpu in sorted(et.parse(filepath).iter("Cpu"), key=lambda e: int(e.get("Id")))
 	]
 
 
@@ -68,7 +68,7 @@ def _import_graph(filepath: Path) -> Graph:
 			int(node.get("Offset")),
 			int(node.get("CpuId")),
 			int(node.get("CoreId")) if int(node.get("CoreId")) != -1 else None
-		) for i, node in enumerate(et.parse(filepath).iter("Node"))
+		) for i, node in enumerate(sorted(et.parse(filepath).iter("Node"), key=lambda e: int(e.get("Id"))))
 	]
 
 

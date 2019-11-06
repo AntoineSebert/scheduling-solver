@@ -184,7 +184,7 @@ def _generate_solution(problem: Problem) -> Solution:
 		# assign time slice for each process
 		slices = problem.arch[node.cpu_id].cores[node.core_id].slices
 		# add it to corresponding core, at the end of the list
-		start = 0 if not slices else slices[-1].end
+		start = 0 if not slices else slices[-1].end + 1
 		problem.arch[node.cpu_id].cores[node.core_id].slices.append(Slice(node.id, start, start + node.wcet))
 
 	return Solution(problem.filepaths, _hyperperiod_duration(problem.arch), problem.arch)
