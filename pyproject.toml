@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "scheduling-solver"
+version = "0.3.1-alpha"
+description = "Solve task scheduling problems using constraint programming."
+
+authors = [
+	"Antoine Sébert <antoine.sb@orange.fr>"
+]
+
+readme = 'README.md'
+
+repository = "https://gitlab.com/Zeltex/02229---systems-optimization/tree/constraint-programming"
+homepage = "https://gitlab.com/Zeltex/02229---systems-optimization/tree/constraint-programming"
+
+keywords = ['constraint-programming', 'solver', 'scheduling', 'CLI', 'educational-project']
+
+[tool.poetry.dependencies]
+python = "^3.7"
+ortools = "*"
+setuptools = "*"
+tqdm = "*"
+#recordclass = "^0.12"
+
+[tool.poetry.dev-dependencies]
+flake8 = "*"
+flake8-import-order = "^0.18"
+#pytest = "^3.0"
+#pytest-cov = "^2.4"

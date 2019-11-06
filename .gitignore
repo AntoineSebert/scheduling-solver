@@ -1,6 +1,6 @@
 # Temporary files
 *.tmp
-# pipenv .lock file
-Pipfile.lock
+# lock files
+*.lock
 # python cache
 __pycache__
