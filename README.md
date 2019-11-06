@@ -16,7 +16,7 @@ Antoine **Sébert**
 
 Get the interpreter on the [official website](https://www.python.org/downloads/).
 
-We will be working with the version **3.6.x**.
+We will be working with the version **3.7.x**.
 
 You can check the interpreter's version with:
 
@@ -28,9 +28,9 @@ $ python --version
 
 We will use *pip* as package installer.
 
-You can install it or upgrade your current installation by following [this guide](https://pip.pypa.io/en/stable/installing/).
+You can install it by following [this guide](https://pip.pypa.io/en/stable/installing/).
 
-Then, check if the package installer has been installed for *Python 3.6* with:
+Then, check if the package installer has been installed for *Python 3.7* with:
 
 ```bash
 $ pip --version
@@ -38,14 +38,16 @@ $ pip --version
 
 The packages index can be accessed [here](https://pypi.org/).
 
-### Development Workflow
+### Python Dependency Manager
 
-To simplify the environment's management, we will use *pipenv*.
+To manage the deps, we will use *poetry*.
 
-You can install it with:
+You can install it by following [this guide](https://poetry.eustace.io/docs/#installation).
+
+Then, check if the package installer has been installed with:
 
 ```bash
-$ pip install pipenv
+$ poetry --version
 ```
 
 ## Get started
@@ -54,18 +56,22 @@ $ pip install pipenv
 
 Clone the branch with:
 
-### Create workflow
-
-Create the project by running the following:
-
 ```bash
-$ pipenv --python 3.6
+$ git clone --single-branch --branch constraint-programming https://gitlab.com/Zeltex/02229---systems-optimization
 ```
 
-Install all the dependencies by running the following:
+### Create workflow
+
+Go to the repository that has just been cloned and install the dependencies by running the following:
 
 ```bash
-$ pipenv update
+$ poetry install
+```
+
+You can update the dependencies by running the following:
+
+```bash
+$ poetry update
 ```
 
 ## Launch
@@ -73,8 +79,7 @@ $ pipenv update
 Change your working directory to the project's directory and run it with:
 
 ```bash
-$ cd ".../02229---systems-optimization"
-$ python src/main.py
+$ poetry run python src/main.py
 ```
 
 ### Usage
@@ -82,7 +87,7 @@ $ python src/main.py
 You can show the CLI usage with:
 
 ```bash
-$ python src/main.py --help
+$ poetry run python src/main.py --help
 usage: SOLVER [-h] [-f FORMAT] [--verbose] [--version]
               (--case FOLDER | --collection FOLDER)
 
@@ -108,19 +113,19 @@ optional arguments:
 Solve the test case [data/Case 1](data/Case 1) with:
 
 ```bash
-$ python src/main.py --case "data/Case 1"
+$ poetry run python src/main.py --case "data/Case 1"
 ```
 
 Solve all the test cases [data/100pct](data/100pct) with:
 
 ```bash
-$ python src/main.py --collection "data/100pct"
+$ poetry run python src/main.py --collection "data/100pct"
 ```
 
 Redirects the console output including the solution to a file:
 
 ```bash
-$ python src/main.py --case "data/Case 1" 2> file.txt
+$ poetry run python src/main.py --case "data/Case 1" 2> file.txt
 ```
 *Note: If the file does not exist, it will be created.*
 
@@ -129,7 +134,7 @@ $ python src/main.py --case "data/Case 1" 2> file.txt
 Run the tests with:
 
 ```bash
-$ python -m unittest
+$ poetry run python -m unittest
 ```
 
 *Note: this feature is not supported yet. See the [roadmap](#Roadmap) section.*
@@ -137,14 +142,7 @@ $ python -m unittest
 Perform a style check on the whole source with:
 
 ```bash
-$ flake8
-```
-
-### Other
-
-Dependency Graph:
-```bash
-$ pipenv graph
+$ poetry run flake8
 ```
 
 ## Simplified operation
@@ -191,7 +189,7 @@ Formatter -->|Fmt Solution| End(End)
   +--.gitattributes			// project attributes
   +--.gitignore				// unstaged files and folders
   +--.gitlab-ci.yml			// Gitlab pipeline configuration
-  +--Pipfile				// pipenv configuration
+  +--pyproject.toml			// poetry configuration
   +--README.md				// this file
   +--setup.py				// python package definition
 ```
@@ -219,6 +217,5 @@ Formatter -->|Fmt Solution| End(End)
 ### 04/11/2019
 
 - [ ] replace named tuples by mutable equivalent : https://bitbucket.org/intellimath/recordclass/src/default/
-- [ ] bug with `-f xml`
 - [ ] OR-tools : get feasible solution, support Period, Deadline, Offset, MaxJitter
 - [ ] linux cluster for benchmarks
