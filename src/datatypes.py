@@ -184,7 +184,7 @@ class PriorityQueueEncoder(JSONEncoder):
 		Returns a list containing the size of the `PriorityQueue` and a boolean whether it is empty or not.
 	"""
 
-	def default(self, obj):
+	def default(self: JSONEncoder, obj: Any) -> Any:
 		if isinstance(obj, PriorityQueue):
 			return [obj.qsize(), obj.empty()]
 		# Let the base class default method raise the TypeError

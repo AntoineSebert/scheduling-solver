@@ -6,7 +6,9 @@
 import logging
 from functools import wraps
 from time import perf_counter
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Dict, Optional
+
+import log
 
 
 # FUNCTIONS ###########################################################################################################
@@ -30,19 +32,23 @@ def timed_callable(message: str) -> Optional[Any]:
 		The value eventually returned by the `Callable`.
 	"""
 
-	assert(0 < len(message))
-
 	def callable_decorator(callable: Callable) -> Optional[Any]:
 		@wraps(callable)
-		def timed_wrapper(*args, **kwds) -> Optional[Any]:
-			logging.info(message)
+		def timed_wrapper(*args: Any, **kwds: Dict[str, Any]) -> Optional[Any]:
+			result = None
 
-			start = perf_counter()
-			result = callable(*args, **kwds)
-			end = perf_counter()
+			if 0 < len(message):
+				logging.info(message)
 
-			logging.info("Done in " + str(end - start) + "s.")
+				start = perf_counter()
+				result = callable(*args, **kwds)
+				end = perf_counter()
+
+				logging.info("Done in " + str(end - start) + "s.")
+			else:
+				log.error("Cannot call timed callable" + str(callable) + ": there is no message.")
 
 			return result
 		return timed_wrapper
+
 	return callable_decorator

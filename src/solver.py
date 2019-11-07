@@ -98,18 +98,13 @@ def _create_node_pqueue(graph: Graph, cpu_id: bool = True) -> PriorityQueue:
 
 	node_pqueue = PriorityQueue(maxsize=len(graph))
 
-	if cpu_id:
-		for node in graph:
-			if node.core_id is None:
-				node_pqueue.put(PrioritizedItem(_node_stress(node), node.id))
-	else:
-		for node in graph:
-			node_pqueue.put(PrioritizedItem(_node_stress(node), node.id))
+	for node in filter(lambda n: n.core_id is None, graph) if cpu_id else graph:
+		node_pqueue.put(PrioritizedItem(_node_stress(node), node.id))
 
 	return node_pqueue
 
 
-def _update_workload(problem: Problem):
+def _update_workload(problem: Problem) -> Problem:
 	"""Updates the processors workload of a problem.
 
 	Parameters
@@ -146,8 +141,6 @@ def _color_graphs(problem: Problem) -> List[Tuple[int, Tuple[int, int]]]:
 
 	node_pq = _create_node_pqueue(problem.graph)
 	problem = _update_workload(problem)
-
-	assert(not node_pq.empty())
 
 	# while node_pq not empty
 	while not node_pq.empty():

@@ -67,14 +67,14 @@ def _add_dataset_arggroup(parser: ArgumentParser) -> ArgumentParser:
 		type=Path,
 		help="Import problem description from FOLDER\
 		(only the first *.tsk and *.cfg files found are taken, all potential others are ignored).",
-		metavar='FOLDER'
+		metavar='FOLDER',
 	)
 	group.add_argument(
 		"--collection",
 		type=Path,
 		help="Recursively import problem descriptions from FOLDER and/or subfolders\
 		(only the first *.tsk and *.cfg files found of each folder are taken, all potential others are ignored).",
-		metavar='FOLDER'
+		metavar='FOLDER',
 	)
 
 	return parser
@@ -102,13 +102,13 @@ def _create_cli_parser() -> ArgumentParser:
 		choices=[member.name for member in OutputFormat],
 		help="Either one of " + ', '.join(member.name for member in OutputFormat),
 		metavar="FORMAT",
-		dest="format"
+		dest="format",
 	)
 	parser.add_argument(
 		"--verbose",
 		action="store_true",
 		help="Toggle program verbosity.",
-		default=False
+		default=False,
 	)
 	parser.add_argument("--version", action="version", version="%(prog)s 0.1.0")
 
@@ -156,28 +156,30 @@ def _get_filepath_pairs(folder_path: Path, recursive: bool = False) -> List[File
 		A list of populated `FilepathPair`.
 	"""
 
-	filepath_pairs = list()
+	filepath_pairs = []
 
 	try:
 		filepath_pairs = [_import_files_from_folder(folder_path)]
 	except StopIteration:
 		pass
 
-	if recursive:
-		for subfolder in filter(lambda e: e.is_dir(), folder_path.iterdir()):
-			try:
-				for filepath in _get_filepath_pairs(subfolder, True):
-					if filepath:
-						filepath_pairs.append(filepath)
-			except StopIteration:
-				pass
+	if not recursive:
+		return filepath_pairs
+
+	for subfolder in filter(lambda e: e.is_dir(), folder_path.iterdir()):
+		try:
+			filepath_pairs += [filepath for filepath in _get_filepath_pairs(subfolder, True) if filepath]
+		except StopIteration:
+			pass
 
 	return filepath_pairs
 
 
-def _solve(filepath_pair: Filepath_pair, pbar: tqdm, operations: List[
-	Callable[[TypeVar('T', Filepath_pair, Problem, Solution)], TypeVar('U', Problem, Solution, str)]
-]) -> str:
+T = TypeVar('T', FilepathPair, Problem, Solution)
+U = TypeVar('U', Problem, Solution, str)
+
+
+def _solve(filepath_pair: FilepathPair, pbar: tqdm, operations: List[Callable[[T], U]]) -> str:
 	"""Handles a test case from building to solving and formatting.
 
 	Parameters

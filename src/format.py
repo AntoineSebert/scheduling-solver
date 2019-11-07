@@ -60,7 +60,9 @@ def _xml_format(solution: Solution) -> str:
 			schedule = SubElement(tables, "Schedule", {"CpuId": str(cpu.id), "CoreId": str(core.id)})
 			schedule.extend([
 				Element("Slice", {
-					"TaskId": str(_slice.task_id), "Start": str(_slice.start), "Duration": str(_slice.end - _slice.start)
+					"TaskId": str(_slice.task_id),
+					"Start": str(_slice.start),
+					"Duration": str(_slice.end - _slice.start),
 				}) for _slice in core.slices
 			])
 
@@ -138,7 +140,7 @@ def _svg_format(solution: Solution) -> str:
 			"<g>",
 				"".join(f"<use id='cpu_{cpu.id}' xlink:href='#cpu' x='5%' y='{i * (15 * len(cpu.cores))}'>" + str(cpu.id) + "</use>" for i, cpu in enumerate(solution.arch)),
 			"</g>",
-		"</svg>"
+		"</svg>",
 	])
 
 	for cpu in solution.arch:
@@ -177,7 +179,7 @@ class OutputFormat(Enum):
 	raw: partial = partial(_raw_format)
 	svg: partial = partial(_svg_format)
 
-	def __call__(self, solution: Solution) -> str:
+	def __call__(self: Any, solution: Solution) -> str:
 		"""Converts the enumeratino member into the corresponding function call.
 
 		Parameters

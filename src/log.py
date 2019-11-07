@@ -4,8 +4,8 @@
 # IMPORTS #############################################################################################################
 
 import logging
-from logging import Handler
-from typing import Any, NoReturn
+from logging import Handler, LogRecord
+from typing import Any, Dict, NoReturn
 
 # CLASSES #############################################################################################################
 
@@ -26,7 +26,7 @@ class Singleton(type):
 
 	_instances = {}
 
-	def __call__(cls, *args, **kwargs) -> Any:
+	def __call__(cls: Any, *args: Any, **kwargs: Dict[str, Any]) -> Any:
 		"""Called when the instance is "called" as a function; if this method is defined, `x(arg1, arg2, ...)`
 		is a shorthand for `x.__call__(arg1, arg2, ...)`.
 
@@ -92,9 +92,9 @@ class ColoredHandler(Handler, metaclass=Singleton):
 	}
 	_reset = '\033[0m'
 	_verbose = False
-	_formatters = dict()
+	_formatters = {}
 
-	def __init__(self, verbose: bool = False) -> NoReturn:
+	def __init__(self: Singleton, verbose: bool = False) -> NoReturn:
 		"""Called after the instance has been created (by `__new__()`), but before it is returned to the caller.
 		The arguments are those passed to the class constructor expression.
 		If a base class has an `__init__()` method, the derived class’s `__init__()` method, if any,
@@ -112,10 +112,10 @@ class ColoredHandler(Handler, metaclass=Singleton):
 		__class__._verbose = verbose
 		__class__._formatters = {key: logging.Formatter(
 			fmt=value + '[%(asctime)s][%(levelname)s]: %(message)s' + __class__._reset,
-			datefmt='%H:%M:%S'
+			datefmt='%H:%M:%S',
 		) for key, value in __class__._colors.items()}
 
-	def emit(self, record) -> NoReturn:
+	def emit(self: Singleton, record: LogRecord) -> NoReturn:
 		"""Formats and prints a `LoggerRecord` parameter, depending on the verbosity.
 
 		Parameters
