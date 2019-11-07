@@ -7,6 +7,11 @@ from Cython.Build import cythonize
 
 from setuptools import find_packages, setup
 
+import sentry_sdk
+
+
+sentry_sdk.init("https://2a0c5b0a20d84da0b8d24791d92bcbaf@sentry.io/1811824")
+
 setup(
 	name="Scheduling Solver",
 	version="0.2.0-alpha",
