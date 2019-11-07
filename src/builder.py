@@ -7,7 +7,7 @@
 import logging
 from pathlib import Path
 
-from datatypes import Architecture, Core, Filepath_pair, Graph, Node, Problem, Processor
+from datatypes import Architecture, Core, FilepathPair, Graph, Node, Problem, Processor
 
 from defusedxml import ElementTree
 
@@ -82,13 +82,13 @@ def _import_graph(filepath: Path) -> Graph:
 
 
 @timed_callable("Building the problem...")
-def build(filepath_pair: Filepath_pair) -> Problem:
+def build(filepath_pair: FilepathPair) -> Problem:
 	"""Creates an internal representation for a problem.
 
 	Parameters
 	----------
-	filepath_pair : Filepath_pair
-		A `Filepath_pair` pointing to the `*.tsk` and `*.cfg` files.
+	filepath_pair : FilepathPair
+		A `FilepathPair` pointing to the `*.tsk` and `*.cfg` files.
 
 	Returns
 	-------
