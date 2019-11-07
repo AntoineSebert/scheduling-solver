@@ -5,10 +5,11 @@
 
 
 import logging
-import xml.etree.ElementTree as et
 from pathlib import Path
 
 from datatypes import Architecture, Core, Filepath_pair, Graph, Node, Problem, Processor
+
+from defusedxml import ElementTree
 
 from ortools.sat.python.cp_model import CpModel
 
@@ -33,14 +34,18 @@ def _import_arch(filepath: Path) -> Architecture:
 	"""
 
 	return [
-		Processor(int(cpu.get("Id")), (0.0, None), [
-			Core(
-				int(core.get("Id")),
-				int(core.get("MacroTick")) if int(core.get("MacroTick")) != 9999999 else None,
-				0.0,
-				list()
-			) for core in sorted(cpu, key=lambda e: int(e.get("Id")))
-		]) for cpu in sorted(et.parse(filepath).iter("Cpu"), key=lambda e: int(e.get("Id")))
+		Processor(
+			i,
+			(0.0, None),
+			[
+				Core(
+					ii,
+					int(core.get("MacroTick")) if int(core.get("MacroTick")) != 9999999 else None,
+					0.0,
+					[],
+				) for ii, core in enumerate(sorted(cpu, key=lambda e: int(e.get("Id"))))
+			],
+		) for i, cpu in enumerate(sorted(ElementTree.parse(filepath).iter("Cpu"), key=lambda e: int(e.get("Id"))))
 	]
 
 
@@ -68,8 +73,8 @@ def _import_graph(filepath: Path) -> Graph:
 			int(node.get("MaxJitter")) if int(node.get("MaxJitter")) != -1 else None,
 			int(node.get("Offset")),
 			int(node.get("CpuId")),
-			int(node.get("CoreId")) if int(node.get("CoreId")) != -1 else None
-		) for i, node in enumerate(sorted(et.parse(filepath).iter("Node"), key=lambda e: int(e.get("Id"))))
+			int(node.get("CoreId")) if int(node.get("CoreId")) != -1 else None,
+		) for i, node in enumerate(sorted(ElementTree.parse(filepath).iter("Node"), key=lambda e: int(e.get("Id"))))
 	]
 
 

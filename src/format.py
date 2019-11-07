@@ -8,10 +8,12 @@ from enum import Enum, unique
 from functools import partial
 from json import dumps
 from pathlib import Path
-from xml.dom.minidom import parseString
-from xml.etree.ElementTree import Element, SubElement, fromstringlist, tostring
+from typing import Any
+from xml.etree.ElementTree import Element, SubElement, fromstringlist, tostring  # noqa:S405
 
 from datatypes import PriorityQueueEncoder, Solution
+
+from defusedxml.minidom import parseString
 
 from timed import timed_callable
 
