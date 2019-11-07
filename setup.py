@@ -33,9 +33,9 @@ setup(
 		"Source Code": "https://code.example.com/HelloWorld/",
 	},
 	classifiers=[
-		'License :: OSI Approved :: Python Software Foundation License'
+		'License :: OSI Approved :: Python Software Foundation License',
 	],
-	ext_modules=cythonize("hello.pyx")
+	ext_modules=cythonize("hello.pyx"),
 
 	# could also include long_description, download_url, etc.
 )
