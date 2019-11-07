@@ -121,8 +121,8 @@ class Node(RecordClass):
 Graph = Iterable[Node]
 
 
-class Filepath_pair(NamedTuple):
-	"""Holds a `Filepath_pair` to a `*.tsk` and a `*.cfg` file, representing a test case.
+class FilepathPair(NamedTuple):
+	"""Holds a `FilepathPair` to a `*.tsk` and a `*.cfg` file, representing a test case.
 
 	Attributes
 	----------
@@ -137,12 +137,12 @@ class Filepath_pair(NamedTuple):
 
 
 class Problem(RecordClass):
-	"""A problem holding a `Filepath_pair`, a `Graph`, an architecture.
+	"""A problem holding a `FilepathPair`, a `Graph`, an architecture.
 
 	Attributes
 	----------
-	filepaths : Filepath_pair
-		The `Filepath_pair` from which the `Problem` has been generated.
+	filepaths : FilepathPair
+		The `FilepathPair` from which the `Problem` has been generated.
 	graph : Graph
 		A `Graph` containing task sequences.
 	arch : Architecture
@@ -151,7 +151,7 @@ class Problem(RecordClass):
 		A `CpModel` object that holds the variables and contraints. Meant to replace `graph` and `arch` in the future.
 	"""
 
-	filepaths: Filepath_pair
+	filepaths: FilepathPair
 	graph: Graph
 	arch: Architecture
 	model: CpModel
@@ -162,15 +162,15 @@ class Solution(RecordClass):
 
 	Attributes
 	----------
-	filepaths : Filepath_pair
-		The `Filepath_pair` from which the `Solution` has been generated.
+	filepaths : FilepathPair
+		The `FilepathPair` from which the `Solution` has been generated.
 	hyperperiod : int
 		The hyperperiod length for this `Solution`.
 	arch : Architecture
 		An `Architecture` containing a sequence of `Processor`.
 	"""
 
-	filepaths: Filepath_pair
+	filepaths: FilepathPair
 	hyperperiod: int
 	arch: Architecture
 

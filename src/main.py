@@ -33,11 +33,11 @@ from typing import Callable, List, TypeVar
 
 from builder import build
 
-from datatypes import Filepath_pair, Problem, Solution
+from datatypes import FilepathPair, Problem, Solution
 
 from format import OutputFormat
 
-from log import colored_handler
+from log import ColoredHandler
 
 from solver import solve
 
@@ -115,7 +115,7 @@ def _create_cli_parser() -> ArgumentParser:
 	return _add_dataset_arggroup(parser)
 
 
-def _import_files_from_folder(folder_path: Path) -> Filepath_pair:
+def _import_files_from_folder(folder_path: Path) -> FilepathPair:
 	"""Creates a filepath pair from a given folder.
 
 	Parameters
@@ -126,8 +126,8 @@ def _import_files_from_folder(folder_path: Path) -> Filepath_pair:
 
 	Returns
 	-------
-	Filepath_pair
-		A `Filepath_pair` pointing to the `*.tsk` and `*.cfg` files.
+	FilepathPair
+		A `FilepathPair` pointing to the `*.tsk` and `*.cfg` files.
 	"""
 
 	tsk = next(filter(Path.is_file, folder_path.glob('*.tsk')))
@@ -136,10 +136,10 @@ def _import_files_from_folder(folder_path: Path) -> Filepath_pair:
 	if tsk.stem != cfg.stem:
 		logging.warning("The names of the files mismatch: '" + tsk.stem + "' and '" + cfg.stem + "'")
 
-	return Filepath_pair(tsk, cfg)
+	return FilepathPair(tsk, cfg)
 
 
-def _get_filepath_pairs(folder_path: Path, recursive: bool = False) -> List[Filepath_pair]:
+def _get_filepath_pairs(folder_path: Path, recursive: bool = False) -> List[FilepathPair]:
 	"""Gathers the filepath pairs from a given folder.
 
 	Parameters
@@ -152,8 +152,8 @@ def _get_filepath_pairs(folder_path: Path, recursive: bool = False) -> List[File
 
 	Returns
 	-------
-	filepath_pairs : List[Filepath_pair]
-		A list of populated `Filepath_pair`.
+	filepath_pairs : List[FilepathPair]
+		A list of populated `FilepathPair`.
 	"""
 
 	filepath_pairs = list()
@@ -182,8 +182,8 @@ def _solve(filepath_pair: Filepath_pair, pbar: tqdm, operations: List[
 
 	Parameters
 	----------
-	filepath_pair : Filepath_pair
-		A `Filepath_pair` pointing to the `*.tsk` and `*.cfg` files.
+	filepath_pair : FilepathPair
+		A `FilepathPair` pointing to the `*.tsk` and `*.cfg` files.
 	format : OutputFormat
 		A member of `OutputFormat` to use to format the `Solution` of the `Problem`.
 	pbar : tqdm
@@ -217,7 +217,7 @@ def main() -> int:
 	"""
 
 	args = _create_cli_parser().parse_args()
-	logging.getLogger().addHandler(colored_handler(verbose=args.verbose))
+	logging.getLogger().addHandler(ColoredHandler(verbose=args.verbose))
 
 	filepath_pairs = _get_filepath_pairs(args.case, False) if args.case else _get_filepath_pairs(args.collection, True)
 

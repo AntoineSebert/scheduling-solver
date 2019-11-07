@@ -51,7 +51,7 @@ class Singleton(type):
 		return cls._instances[cls]
 
 
-class colored_handler(Handler, metaclass=Singleton):
+class ColoredHandler(Handler, metaclass=Singleton):
 	"""Configures the logger.
 
 	Attributes
