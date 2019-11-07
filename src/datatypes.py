@@ -107,6 +107,7 @@ class Node(RecordClass):
 	"""
 
 	id: int
+	name: str
 	wcet: int
 	period: int
 	deadline: int
