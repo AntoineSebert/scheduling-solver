@@ -1,0 +1,90 @@
+<?xml version="1.0" ?>
+<Tables>
+	<Schedule CoreId="1" CpuId="0">
+		<Slice Duration="568" Start="0" TaskId="3"/>
+	</Schedule>
+	<Schedule CoreId="0" CpuId="0">
+		<Slice Duration="179" Start="1" TaskId="4"/>
+		<Slice Duration="179" Start="20000" TaskId="4"/>
+		<Slice Duration="179" Start="40000" TaskId="4"/>
+		<Slice Duration="179" Start="60000" TaskId="4"/>
+	</Schedule>
+	<Schedule CoreId="0" CpuId="0">
+		<Slice Duration="357" Start="180" TaskId="5"/>
+		<Slice Duration="357" Start="10000" TaskId="5"/>
+		<Slice Duration="357" Start="20179" TaskId="5"/>
+		<Slice Duration="357" Start="30000" TaskId="5"/>
+		<Slice Duration="357" Start="40179" TaskId="5"/>
+		<Slice Duration="357" Start="50000" TaskId="5"/>
+		<Slice Duration="357" Start="60179" TaskId="5"/>
+		<Slice Duration="357" Start="70000" TaskId="5"/>
+	</Schedule>
+	<Schedule CoreId="0" CpuId="0">
+		<Slice Duration="1627" Start="537" TaskId="6"/>
+	</Schedule>
+	<Schedule CoreId="0" CpuId="0">
+		<Slice Duration="1508" Start="2164" TaskId="7"/>
+	</Schedule>
+	<Schedule CoreId="0" CpuId="0">
+		<Slice Duration="552" Start="3672" TaskId="8"/>
+		<Slice Duration="552" Start="20536" TaskId="8"/>
+		<Slice Duration="552" Start="40536" TaskId="8"/>
+		<Slice Duration="552" Start="60536" TaskId="8"/>
+	</Schedule>
+	<Schedule CoreId="1" CpuId="0">
+		<Slice Duration="69" Start="573" TaskId="9"/>
+		<Slice Duration="69" Start="5000" TaskId="9"/>
+		<Slice Duration="69" Start="10001" TaskId="9"/>
+		<Slice Duration="69" Start="15000" TaskId="9"/>
+		<Slice Duration="69" Start="20003" TaskId="9"/>
+		<Slice Duration="69" Start="25000" TaskId="9"/>
+		<Slice Duration="69" Start="30001" TaskId="9"/>
+		<Slice Duration="69" Start="35000" TaskId="9"/>
+		<Slice Duration="69" Start="40003" TaskId="9"/>
+		<Slice Duration="69" Start="45000" TaskId="9"/>
+		<Slice Duration="69" Start="50001" TaskId="9"/>
+		<Slice Duration="69" Start="55000" TaskId="9"/>
+		<Slice Duration="69" Start="60003" TaskId="9"/>
+		<Slice Duration="69" Start="65000" TaskId="9"/>
+		<Slice Duration="69" Start="70001" TaskId="9"/>
+		<Slice Duration="69" Start="75000" TaskId="9"/>
+	</Schedule>
+	<Schedule CoreId="0" CpuId="1">
+		<Slice Duration="2827" Start="0" TaskId="10"/>
+		<Slice Duration="2827" Start="40000" TaskId="10"/>
+	</Schedule>
+	<Schedule CoreId="1" CpuId="1">
+		<Slice Duration="89" Start="1" TaskId="11"/>
+		<Slice Duration="89" Start="40001" TaskId="11"/>
+	</Schedule>
+	<Schedule CoreId="0" CpuId="2">
+		<Slice Duration="875" Start="0" TaskId="13"/>
+		<Slice Duration="875" Start="10000" TaskId="13"/>
+		<Slice Duration="875" Start="20000" TaskId="13"/>
+		<Slice Duration="875" Start="30000" TaskId="13"/>
+		<Slice Duration="875" Start="40000" TaskId="13"/>
+		<Slice Duration="875" Start="50000" TaskId="13"/>
+		<Slice Duration="875" Start="60000" TaskId="13"/>
+		<Slice Duration="875" Start="70000" TaskId="13"/>
+	</Schedule>
+	<Schedule CoreId="0" CpuId="2">
+		<Slice Duration="4710" Start="875" TaskId="12"/>
+		<Slice Duration="4710" Start="20875" TaskId="12"/>
+		<Slice Duration="4710" Start="40875" TaskId="12"/>
+		<Slice Duration="4710" Start="60875" TaskId="12"/>
+	</Schedule>
+	<Schedule CoreId="1" CpuId="2">
+		<Slice Duration="1" Start="2" TaskId="1"/>
+		<Slice Duration="1" Start="10001" TaskId="1"/>
+		<Slice Duration="1" Start="20002" TaskId="1"/>
+		<Slice Duration="1" Start="30001" TaskId="1"/>
+		<Slice Duration="1" Start="40002" TaskId="1"/>
+		<Slice Duration="1" Start="50001" TaskId="1"/>
+		<Slice Duration="1" Start="60002" TaskId="1"/>
+		<Slice Duration="1" Start="70001" TaskId="1"/>
+	</Schedule>
+	<Schedule CoreId="0" CpuId="2">
+		<Slice Duration="2" Start="29998" TaskId="2"/>
+		<Slice Duration="2" Start="69998" TaskId="2"/>
+	</Schedule>
+</Tables>

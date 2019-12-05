@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<graphml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Graph>
+    <Node Id="1" Name="DM1" WCET="84" Period="40000" Deadline="40000" MaxJitter="-1" Offset="0" CpuId="0" CoreId="-1" />
+    <Node Id="2" Name="DM2" WCET="3200" Period="80000" Deadline="80000" MaxJitter="-1" Offset="0" CpuId="0" CoreId="-1" />
+    <Node Id="3" Name="DM3" WCET="26" Period="10000" Deadline="10000" MaxJitter="-1" Offset="0" CpuId="0" CoreId="-1" />
+    <Node Id="4" Name="DM4" WCET="1247" Period="40000" Deadline="40000" MaxJitter="-1" Offset="0" CpuId="0" CoreId="-1" />
+    <Node Id="5" Name="DM5" WCET="192" Period="10000" Deadline="10000" MaxJitter="-1" Offset="0" CpuId="1" CoreId="-1" />
+    <Node Id="6" Name="DM6" WCET="240" Period="5000" Deadline="5000" MaxJitter="-1" Offset="0" CpuId="1" CoreId="-1" />
+    <Node Id="7" Name="DM7" WCET="278" Period="20000" Deadline="20000" MaxJitter="-1" Offset="0" CpuId="1" CoreId="-1" />
+    <Node Id="8" Name="DM8" WCET="2840" Period="80000" Deadline="80000" MaxJitter="-1" Offset="0" CpuId="1" CoreId="-1" />
+    <Node Id="9" Name="DM9" WCET="650" Period="10000" Deadline="10000" MaxJitter="-1" Offset="0" CpuId="1" CoreId="-1" />
+    <Chain Budget="100000" Priority="1" Name="Chain0">
+      <Runnable Name="DM1" />
+      <Runnable Name="DM2" />
+      <Runnable Name="DM5" />
+      <Runnable Name="DM6" />
+      <Runnable Name="DM3" />
+    </Chain>
+    <Chain Budget="90000" Priority="1" Name="Chain1">
+      <Runnable Name="DM4" />
+      <Runnable Name="DM2" />
+      <Runnable Name="DM5" />
+      <Runnable Name="DM7" />
+      <Runnable Name="DM8" />
+      <Runnable Name="DM9" />
+    </Chain>
+  </Graph>
+</graphml>
