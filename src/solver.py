@@ -82,13 +82,15 @@ def _node_stress(node: Node) -> Fraction:
 	return Fraction(node.period - node.offset, node.wcet)
 
 
-def _create_node_pqueue(graph: Graph, cpu_id: bool = True) -> PriorityQueue:
+def _create_node_pqueue(graph: Graph, unassigned: bool = True) -> PriorityQueue:
 	"""Creates a priority queue for all nodes in the problem, depending on the node stress.
 
 	Parameters
 	----------
 	graph : Graph
 		A `Graph`.
+	unassigned: bool
+		If set to `True`, only the `Node` objects those attribute `core_id` is `None` will be taken (default: `True`).
 
 	Returns
 	-------
@@ -98,7 +100,7 @@ def _create_node_pqueue(graph: Graph, cpu_id: bool = True) -> PriorityQueue:
 
 	node_pqueue = PriorityQueue(maxsize=len(graph))
 
-	for node in filter(lambda n: n.core_id is None, graph) if cpu_id else graph:
+	for node in filter(lambda n: n.core_id is None, graph) if unassigned else graph:
 		node_pqueue.put(PrioritizedItem(_node_stress(node), node.id))
 
 	return node_pqueue

@@ -78,6 +78,29 @@ def _import_graph(filepath: Path) -> Graph:
 	]
 
 
+def _create_variables(model: CpModel, graph: Graph, arch: Architecture) -> NoReturn:
+
+	model.NewIntVar(
+		0,
+		len(arch[node.cpu_id].cores) - 1,
+		"task[" + node.id + "].core_id"
+	) for node in graph if node.core_id is None
+
+
+
+
+def _create_constraints(model: CpModel, graph: Graph, arch: Architecture) -> NoReturn:
+	print("")
+
+	# CREATE CONSTRAINTS : model.Add(x != y)
+
+
+def _add_objective_function(model: CpModel):
+	print("")
+
+	# ADD OBJECTIVE FUNCTION : model.Maximize(x + 2 * y + 3 * z)
+
+
 # ENTRY POINT #########################################################################################################
 
 
@@ -104,16 +127,9 @@ def build(filepath_pair: FilepathPair) -> Problem:
 
 	model = CpModel()
 
-	# CREATE VARIABLES
-	"""
-	num_vals = 3
-	x = model.NewIntVar(0, num_vals - 1, 'x')
-	y = model.NewIntVar(0, num_vals - 1, 'y')
-	z = model.NewIntVar(0, num_vals - 1, 'z')
-	"""
-
-	# CREATE CONSTRAINTS : model.Add(x != y)
-
-	# ADD OBJECTIVE FUNCTION : model.Maximize(x + 2 * y + 3 * z)
+	_create_variables(model, graph, arch)
+	_create_constraints(model, arch, graph)
+	_add_objective_function(model)
+	logging.info("Model created")
 
 	return Problem(filepath_pair, graph, arch, model)
