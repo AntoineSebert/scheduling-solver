@@ -6,7 +6,7 @@ Milán **Balázs**
 
 Nicolai **Herrmann**
 
-Jessika **Pecl**
+[redacted]
 
 Antoine **Sébert**
 
